@@ -1,0 +1,10 @@
+/planning/
+# Local configuration and Python build output
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+dist/
+.DS_Store
