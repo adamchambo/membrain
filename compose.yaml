@@ -16,11 +16,7 @@ services:
   api:
     build: ./server
     environment:
-      ORACLE_DB_HOST: db
-      ORACLE_DB_PORT: "5432"
-      ORACLE_DB_NAME: oracle
-      ORACLE_DB_USER: oracle
-      ORACLE_DB_PASSWORD: "${ORACLE_DB_PASSWORD:?Set ORACLE_DB_PASSWORD in .env}"
+      DATABASE_URL: "postgresql+psycopg://oracle:${ORACLE_DB_PASSWORD:?Set ORACLE_DB_PASSWORD in .env}@db:5432/oracle"
     depends_on:
       db:
         condition: service_healthy

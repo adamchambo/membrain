@@ -3,18 +3,12 @@
 import os
 
 from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine, URL
+from sqlalchemy.engine import Engine, URL, make_url
 
 
 def database_url() -> URL:
-    return URL.create(
-        "postgresql+psycopg",
-        username=os.environ.get("ORACLE_DB_USER", "oracle"),
-        password=os.environ["ORACLE_DB_PASSWORD"],
-        host=os.environ.get("ORACLE_DB_HOST", "localhost"),
-        port=int(os.environ.get("ORACLE_DB_PORT", "5432")),
-        database=os.environ.get("ORACLE_DB_NAME", "oracle"),
-    )
+    """Parse the database connection string supplied to the process."""
+    return make_url(os.environ["DATABASE_URL"])
 
 
 def create_db_engine() -> Engine:

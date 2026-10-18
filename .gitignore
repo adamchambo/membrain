@@ -1,6 +1,8 @@
 /planning/
 # Local configuration and Python build output
 .env
+.env.*
+!.env.example
 .venv/
 __pycache__/
 *.py[cod]
@@ -8,3 +10,6 @@ __pycache__/
 *.egg-info/
 dist/
 .DS_Store
+
+# Local PostgreSQL cluster and runtime files
+/.local/
