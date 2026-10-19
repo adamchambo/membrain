@@ -35,13 +35,14 @@ class ExplanationRevision(Base):
         UniqueConstraint("concept_id", "revision_number", name="uq_explanation_revision_number"),
         CheckConstraint("revision_number > 0", name="explanation_revision_positive"),
         CheckConstraint(
-            "origin IN ('user_written', 'ai_formatted_user_input', 'user_edited_format')",
+            "origin IN ('user_written', 'ai_formatted_user_input', 'user_edited_format', 'user_confirmed_suggestion')",
             name="explanation_origin_valid",
         ),
         CheckConstraint(
-            "origin = 'user_written' OR (capture_id IS NOT NULL AND proposal_id IS NOT NULL)",
+            "origin IN ('user_written', 'user_confirmed_suggestion') OR (capture_id IS NOT NULL AND proposal_id IS NOT NULL)",
             name="ai_formatted_provenance_required",
         ),
+        CheckConstraint("origin <> 'user_confirmed_suggestion' OR suggestion_id IS NOT NULL", name="suggestion_provenance_required"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -51,6 +52,7 @@ class ExplanationRevision(Base):
     revision_number: Mapped[int] = mapped_column(Integer, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     origin: Mapped[str] = mapped_column(String(32), nullable=False)
+    suggestion_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("learning_suggestions.id", use_alter=True, name="fk_revision_suggestion", ondelete="RESTRICT"), nullable=True)
     retracted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
@@ -88,6 +90,7 @@ class ConceptRelationship(Base):
     relation_type: Mapped[str] = mapped_column(String(64), nullable=False)
     rationale: Mapped[str | None] = mapped_column(Text, nullable=True)
     confirmed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class ConceptEmbedding(Base):

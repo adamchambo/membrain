@@ -19,6 +19,11 @@ from app.review.schemas import AttemptCreate, AttemptRead, SessionCreate, Sessio
 
 def create_session(db: Session, data: SessionCreate) -> SessionRead:
     with db.begin():
+        if data.subject_id:
+            from app.learning.scopes import resolve_subject
+            data.concept_ids = resolve_subject(db, data.subject_id)
+        if not data.concept_ids or len(data.concept_ids) > 200:
+            raise Conflict("Review scope requires between 1 and 200 concepts")
         for concept_id in data.concept_ids:
             concept = db.get(Concept, concept_id)
             if not concept or concept.archived_at or latest_revision(db, concept_id) is None:
@@ -46,13 +51,14 @@ def require_session(db: Session, session_id: UUID, *, lock: bool = False) -> Rev
 
 def pending_question(db: Session, session_id: UUID):
     return db.scalar(select(ReviewQuestion).join(ExplanationRevision, ExplanationRevision.id == ReviewQuestion.revision_id)
-        .where(ExplanationRevision.retracted_at.is_(None), ReviewQuestion.review_session_id == session_id,
+        .join(Concept, Concept.id == ReviewQuestion.concept_id)
+        .where(Concept.archived_at.is_(None), ExplanationRevision.retracted_at.is_(None), ReviewQuestion.review_session_id == session_id,
         ReviewQuestion.answered_at.is_(None)).order_by(ReviewQuestion.created_at).limit(1))
 
 
 def next_question(db: Session, session_id: UUID) -> ReviewQuestion:
     with db.begin():
-        require_session(db, session_id)
+        session = require_session(db, session_id)
         pending = pending_question(db, session_id)
         if pending:
             return pending
@@ -62,18 +68,39 @@ def next_question(db: Session, session_id: UUID) -> ReviewQuestion:
         choices = [(c, r) for c, r in choices if r]
         if not choices:
             raise Conflict("No active explanations remain in this review scope")
-        count = db.scalar(select(func.count()).select_from(ReviewQuestion).where(ReviewQuestion.review_session_id == session_id)) or 0
-        concept, revision = choices[count % len(choices)]
-        snapshot = {"concept_id": str(concept.id), "title": concept.title, "revision_id": str(revision.id), "explanation": revision.body}
+        # Rotate within the session, then use actual answers to current revisions.
+        counts = dict(db.execute(select(ReviewQuestion.concept_id, func.count()).where(ReviewQuestion.review_session_id == session_id).group_by(ReviewQuestion.concept_id)).all())
+        evidence = {}
+        attempts = db.execute(select(ReviewQuestion.concept_id, ReviewAttempt).join(ReviewAttempt, ReviewAttempt.question_id == ReviewQuestion.id)
+            .where(ReviewQuestion.revision_id.in_([r.id for c, r in choices])).order_by(ReviewAttempt.answered_at.desc()).limit(1000)).all()
+        for concept_id, attempt in attempts:
+            if concept_id not in evidence:
+                try:
+                    recall = json.loads(attempt.feedback).get("recall") if attempt.feedback else None
+                except ValueError:
+                    recall = None
+                evidence[concept_id] = (attempt.id, recall)
+        def rank(pair):
+            last = evidence.get(pair[0].id)
+            priority = 0 if last is None else 1 if last[1] in ("partial", "different", "unclear") else 2
+            return counts.get(pair[0].id, 0), priority, str(pair[0].id)
+        concept, revision = min(choices, key=rank)
+        last = evidence.get(concept.id)
+        snapshot = {"concept_id": str(concept.id), "title": concept.title, "revision_id": str(revision.id), "explanation": revision.body, "mode": session.mode,
+                    "selection": {"policy": "coverage-and-recall.v1", "last_attempt_id": str(last[0]) if last else None,
+                                  "recall": last[1] if last else "unassessed", "mastery": "not_inferred"}}
     prompt, model, version = generate_question(snapshot)
     with db.begin():
-        require_session(db, session_id, lock=True)
+        session = require_session(db, session_id, lock=True)
         pending = pending_question(db, session_id)
         if pending:
             return pending
         revision = db.get(ExplanationRevision, UUID(snapshot["revision_id"]), populate_existing=True)
         if revision is None or revision.retracted_at:
             raise Conflict("The selected explanation was undone; request another question")
+        concept = db.scalar(select(Concept).where(Concept.id == UUID(snapshot["concept_id"])).with_for_update().execution_options(populate_existing=True))
+        if concept.archived_at or latest_revision(db, concept.id).id != revision.id:
+            raise Conflict("The selected understanding changed; request another question")
         question = ReviewQuestion(review_session_id=session_id, concept_id=UUID(snapshot["concept_id"]),
             revision_id=revision.id, snapshot=snapshot, prompt=prompt, model_key=model, prompt_version=version)
         db.add(question)
@@ -95,7 +122,7 @@ def attempt_read(db: Session, attempt: ReviewAttempt) -> AttemptRead:
 
 def record_attempt(db: Session, session_id: UUID, data: AttemptCreate) -> AttemptRead:
     with db.begin():
-        require_session(db, session_id, lock=True)
+        session = require_session(db, session_id, lock=True)
         question = db.get(ReviewQuestion, data.question_id)
         if question is None or question.review_session_id != session_id:
             raise Conflict("Question does not belong to this review session")
@@ -107,7 +134,10 @@ def record_attempt(db: Session, session_id: UUID, data: AttemptCreate) -> Attemp
         reference = db.get(ExplanationRevision, question.revision_id)
         if reference is None or reference.retracted_at:
             raise Conflict("This question's explanation was undone")
-        attempt = ReviewAttempt(review_session_id=session_id, question_id=question.id, format="cue_card",
+        concept = db.get(Concept, question.concept_id)
+        if concept.archived_at:
+            raise Conflict("This question's concept was archived")
+        attempt = ReviewAttempt(review_session_id=session_id, question_id=question.id, format=session.mode,
                                 prompt=question.prompt, response=data.response)
         db.add(attempt)
         db.flush()

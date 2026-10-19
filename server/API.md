@@ -1,0 +1,136 @@
+# API capabilities
+
+| Version | Date | Change |
+| --- | --- | --- |
+| 0.1 | 2026-10-19 | Setup, profile migration, maintenance, sources, learning, review, maps and portability. |
+
+FastAPI publishes request contracts in `/docs` and `/openapi.json`.
+This is a local, single-bank API. Compose binds it to localhost. Account/tenant
+authorization, public hosting and device sync are not implemented.
+
+## Setup and embedding profiles
+
+- `GET /api/v1/setup`: safe configured/model flags, without credentials.
+- `PUT /api/v1/setup`: full provider configuration replacement. Optional
+  `database_url` is private; `database_mode` is `bundled` or `existing` PostgreSQL.
+  `chat` and `embeddings` specify full endpoint URL, served model and optional key.
+  Embeddings also require a profile: pinned revision, dimensions, task prefixes and
+  L2 normalization. Omitted providers become unconfigured in the private file.
+  Environment variables still override the file; the response lists overridden keys.
+- `POST /api/v1/setup/validate`: `capabilities` chooses database/chat/embeddings.
+  Probes return readiness, never provider error bodies or credentials.
+- `GET /health/ready`: checks migration head, recent worker heartbeat and job counts.
+  Configured model flags are not live inference checks. `/health` remains liveness.
+- `POST /api/v1/embedding-migrations`: target endpoint and complete profile. Returns
+  an operation ID and missing current-explanation count; retries for the same running
+  target reuse it. Background work populates target vectors while search keeps the
+  persisted active profile. A changing bank queues both profiles.
+- `GET /api/v1/embedding-migrations/{id}`: progress/status.
+- `POST /api/v1/embedding-migrations/{id}/cutover`: requires zero missing current
+  explanation vectors. `.../cancel` keeps the old active profile and cancels target
+  embedding jobs where the target differs from the active profile. Existing vectors
+  are retained; there is no automatic vector cleanup or rollback deletion.
+
+Setup writes, explicit probes, migration decisions, portability and permanent
+deletion require `X-Oracle-Setup-Token` matching `ORACLE_SETUP_TOKEN`. No token means
+those operations are disabled. Changing an existing database is an offline operation:
+stop API and worker and run the setup CLI, then restart both. The CLI does not
+provision an arbitrary server; start the bundled Compose database or provide an
+existing PostgreSQL+pgvector connection first.
+
+## Maintenance and provenance
+
+`PATCH /api/v1/concepts/{id}` accepts optional `title` and `archived`.
+`PATCH /api/v1/resources/{id}` accepts nullable `title`/`note` and `archived`.
+`PATCH /api/v1/relationships/{id}` takes `archived` to remove/restore an edge from
+active views. Archive preserves history and vectors. Explanations are edited by
+adding revisions through the existing revision endpoint.
+
+`GET /api/v1/resources` and `/conversations` use `limit` (1–100) and an opaque
+`cursor`; resources also accept `include_archived`. Timeline concept filtering now
+includes linked captures, bookmarks and review attempts. Recents means saved
+activity; opening a page is not tracked.
+
+`DELETE /api/v1/concepts/{id}`, `/resources/{id}` and `/captures/{id}` require prior
+archive and reject **all** incoming database references, including cascades and
+work records, plus learning-context references. A typical learned concept therefore
+stays archived to retain its explanation history. Source versions also prevent
+hard deletion of their resource. These are conservative unreferenced-record cleanup
+operations, not a cascading erase-bank feature. Conversation/review-history deletion
+and removal of referenced provenance are not offered.
+
+## Source content
+
+`POST /api/v1/resources/{id}/content` takes `media_type` (`text/plain`,
+`text/markdown`, `text/html`) and `content_base64` (nonempty UTF-8, max 2 MiB).
+It atomically stores an immutable version and queues extraction; identical uploads
+reuse a version/job. The bookmark survives extraction failure.
+
+`GET .../{id}/chunks` returns the latest completed version, stable chunk IDs,
+ordinal, character offsets, text and source URI. Optional literal `query` filters
+chunks; `limit` is 1–100. Chunks use at most 1200 characters. Older version chunks
+remain stored so existing artifact citations stay meaningful. No URL fetching,
+PDF/OCR, social APIs, or source-vector index is implemented. Imported text is never
+automatically recorded as user understanding.
+
+## Subjects, review and reflection
+
+`POST /api/v1/subjects` takes `title` and optional existing `parent_id`.
+`GET /subjects` lists subjects; `PUT /subjects/{id}/concepts/{id}` adds membership
+idempotently. `GET /subjects/{id}/scope` exposes active concepts including descendants.
+
+`POST /review-sessions` accepts exactly one of `subject_id` or `concept_ids`, and
+`mode`: cue_card, quiz, teach_back, fill_gap, applied. The eligible set (1–200
+concepts with explanations) is stored at session creation. Existing next/answer/
+finish routes preserve questions, snapshot revisions and original responses.
+Without conversation AI, mode-specific templates remain usable.
+
+Selection first balances coverage within the session, then prioritizes unassessed
+current revisions and actual partial/different/unclear recall feedback. Selection
+evidence is retained in the question snapshot. This is not a mastery or spaced
+repetition algorithm. `GET /review-sessions` lists recent history;
+`GET /review-sessions/{id}` exposes snapshots/attempts (first 200 each).
+`GET /reflection` accepts optional `subject_id`, timezone-aware `since` and `until`;
+returns eligible/reviewed/unreviewed concepts, up to 500 revisions and attempts,
+and a truncation flag. Scope is saved membership, not total knowledge of a subject.
+
+## Learning tasks and decisions
+
+`POST /learning-tasks` takes `kind` (clarification, suggestions, fact_check, lesson,
+worked_example, diagram), 1–20 `concept_ids`, up to 10 `resource_ids`, and optional
+`question`. Returns an artifact/job ID immediately. Work retrieves current and recent
+user statements, selected source chunks and review evidence, then calls chat outside
+the database transaction. Inputs used, output, model and prompt version are retained.
+Diagram output is textual content; no graphical renderer is selected.
+
+`GET /learning-artifacts/{id}` returns generated material, optional questions,
+uncertainty, exact-quote citations, and pending suggestions. Source comparison is
+labelled `sources_compared` only when matching supplied citations exist; that validates
+provenance, not the truth/relevance of a model's interpretation. No web fact search
+or automatic reliability rating is performed. No sources means `not_verified`.
+
+Suggestions are correction, possible gap, or relationship. Gap suggestions remain
+`unrecorded`/`uncertain` and require a diagnostic question. They do not establish a
+deficit. `POST /learning-suggestions/{id}/decision` accepts `action` adopt/dismiss and
+the user's conversational `message`. A correction creates a revision with
+`user_confirmed_suggestion` origin and its suggestion reference. A relationship
+creates a confirmed edge; adopting a possible gap records interest. Stale source
+understanding prevents adoption. Repeating an identical decision is idempotent.
+
+## Concept maps
+
+`POST /concept-map` takes exactly one of `concept_ids` (max 100) or `subject_id`,
+optional `include_similarity`, `minimum_similarity` (-1 to 1), and `layout`
+(`none` or `circle`). It returns text-accessible nodes, confirmed edges and separately
+labelled semantic candidates from compatible current-revision vectors. Pending
+vectors are explicit. Circle coordinates are display placement, not an embedding
+projection. 3D, prerequisites inferred from distance, and a graphical client remain
+outside this first API version.
+
+## Voice and hosted work
+
+Voice transcription remains deferred: automatic approval review requires a selected
+audio destination before allowing the transport implementation. No audio-upload API,
+transcription worker, provider selection, or audio deletion was installed. Existing
+text and voice-transcript capture inputs remain available.
+Hosted auth, billing, email and sync remain optional future work.

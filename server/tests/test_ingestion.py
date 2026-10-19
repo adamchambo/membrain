@@ -5,6 +5,7 @@ import json
 import os
 import unittest
 import threading
+import tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
@@ -54,7 +55,7 @@ class ScriptedClient:
         return json.dumps(self.response)
 
 
-async def asgi_call(method, url, body=None):
+async def asgi_call(method, url, body=None, headers=None):
     path, _, query = url.partition("?")
     sent = []
     raw = json.dumps(body).encode() if body is not None else b""
@@ -67,7 +68,7 @@ async def asgi_call(method, url, body=None):
 
     await app({"type": "http", "asgi": {"version": "3.0"}, "http_version": "1.1", "method": method,
                "scheme": "http", "path": path, "raw_path": path.encode(), "query_string": query.encode(),
-               "root_path": "", "headers": [(b"content-type", b"application/json")],
+               "root_path": "", "headers": [(b"content-type", b"application/json")] + [(key.lower().encode(), value.encode()) for key, value in (headers or {}).items()],
                "server": ("test", 80), "client": ("test", 1234)}, receive, send)
     status = next(item["status"] for item in sent if item["type"] == "http.response.start")
     content = b"".join(item.get("body", b"") for item in sent if item["type"] == "http.response.body")
@@ -116,7 +117,8 @@ class IngestionTests(unittest.TestCase):
         names = ", ".join(self.engine.dialect.identifier_preparer.quote(name) for name in Base.metadata.tables)
         with self.engine.begin() as db:
             db.execute(text(f"TRUNCATE {names} CASCADE"))
-        self.settings = patch.dict(os.environ, {"ORACLE_CHAT_COMPLETIONS_URL": "", "ORACLE_CHAT_MODEL": "",
+        self.config_directory = tempfile.TemporaryDirectory()
+        self.settings = patch.dict(os.environ, {"ORACLE_CONFIG_FILE": self.config_directory.name + "/config.json", "ORACLE_CHAT_COMPLETIONS_URL": "", "ORACLE_CHAT_MODEL": "",
             "ORACLE_EMBEDDINGS_URL": "http://test/embeddings", "ORACLE_EMBEDDING_REVISION": "test-weights-v1",
             "ORACLE_EMBEDDING_DIMENSIONS": "3"})
         self.settings.start()
@@ -129,6 +131,7 @@ class IngestionTests(unittest.TestCase):
     def tearDown(self):
         app.dependency_overrides.clear()
         self.settings.stop()
+        self.config_directory.cleanup()
 
     def api(self, method, path, body=None, expected=200):
         status, result = asyncio.run(asgi_call(method, "/api/v1" + path, body))

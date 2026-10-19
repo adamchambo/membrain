@@ -15,7 +15,12 @@ def generate_question(snapshot: dict) -> tuple[str, str, str]:
     try:
         client = get_chat_client()
     except NotConfigured:
-        return f"Explain {snapshot['title']} in your own words. What are you unsure about?", "template", QUESTION_VERSION
+        templates = {"quiz": "What do you recall about {title}? Give an example.",
+                     "teach_back": "Explain {title} to a beginner in your own words.",
+                     "fill_gap": "Describe the steps in your understanding of {title}. Which connection is unclear?",
+                     "applied": "Give a concrete example where you would use your understanding of {title}."}
+        template = templates.get(snapshot.get("mode"), "Explain {title} in your own words. What are you unsure about?")
+        return template.format(title=snapshot["title"]), "template", QUESTION_VERSION
     payload = json.dumps({"understanding": snapshot, "output_schema": QuestionOutput.model_json_schema()})
     try:
         result = QuestionOutput.model_validate_json(client.generate(QUESTION_PROMPT, payload))

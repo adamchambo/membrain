@@ -51,7 +51,7 @@ def get_concept(db: Session, concept_id: UUID) -> ConceptDetail:
     concept = require_concept(db, concept_id)
     resources = db.scalars(select(Resource).join(ConceptResource, Resource.id == ConceptResource.resource_id)
                            .where(ConceptResource.concept_id == concept_id, Resource.archived_at.is_(None)).order_by(Resource.created_at.desc())).all()
-    relationships = db.scalars(select(ConceptRelationship)
+    relationships = db.scalars(select(ConceptRelationship).where(ConceptRelationship.archived_at.is_(None))
         .where((ConceptRelationship.source_concept_id == concept_id) | (ConceptRelationship.target_concept_id == concept_id))
         .order_by(ConceptRelationship.confirmed_at.desc())).all()
     return ConceptDetail(**summary(db, concept).model_dump(), resources=resources, relationships=relationships)
@@ -129,7 +129,7 @@ def detach_resource(db: Session, concept_id: UUID, resource_id: UUID):
 
 def list_relationships(db: Session, concept_id: UUID, cursor: str | None, limit: int):
     require_concept(db, concept_id)
-    query = select(ConceptRelationship).where(
+    query = select(ConceptRelationship).where(ConceptRelationship.archived_at.is_(None)).where(
         (ConceptRelationship.source_concept_id == concept_id) | (ConceptRelationship.target_concept_id == concept_id))
     if cursor:
         query = query.where(before_cursor(ConceptRelationship.confirmed_at, ConceptRelationship.id, cursor))

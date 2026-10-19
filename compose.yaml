@@ -27,6 +27,10 @@ services:
       ORACLE_EMBEDDING_DOCUMENT_PREFIX: "${ORACLE_EMBEDDING_DOCUMENT_PREFIX-search_document: }"
       ORACLE_EMBEDDING_QUERY_PREFIX: "${ORACLE_EMBEDDING_QUERY_PREFIX-search_query: }"
       ORACLE_EMBEDDING_API_KEY: "${ORACLE_EMBEDDING_API_KEY:-}"
+      ORACLE_CONFIG_FILE: /var/lib/oracle/config.json
+      ORACLE_SETUP_TOKEN: "${ORACLE_SETUP_TOKEN:-}"
+    volumes:
+      - oracle_config:/var/lib/oracle
     depends_on:
       db:
         condition: service_healthy
@@ -42,6 +46,8 @@ services:
   worker:
     build: ./server
     environment: *oracle_environment
+    volumes:
+      - oracle_config:/var/lib/oracle
     depends_on:
       api:
         condition: service_healthy
@@ -51,3 +57,4 @@ services:
 
 volumes:
   oracle_postgres:
+  oracle_config:

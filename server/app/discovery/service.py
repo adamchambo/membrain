@@ -10,6 +10,7 @@ from app.errors import NotConfigured
 from app.knowledge.models import Concept, ConceptEmbedding, ConceptRelationship, ExplanationRevision, Resource
 from app.knowledge.service import require_concept
 from app.discovery.schemas import RelatedResult, SearchHit, SearchResult
+from app.setup.profiles import active_profile
 
 
 def latest_revisions():
@@ -71,7 +72,10 @@ def search(db: Session, q: str, mode: str, limit: int) -> SearchResult:
     if not q:
         return SearchResult(items=[], mode=mode)
     # Query inference happens before this request starts a DB transaction.
-    profile = configured_profile() if mode != "text" else None
+    profile = None
+    if mode != "text":
+        with db.begin():
+            profile = active_profile(db)
     vector = embed(q, profile, query=True) if profile else None
     text = text_search(db, q, limit) if mode != "semantic" else []
     semantic = vector_search(db, vector, profile.key, limit) if profile else []
@@ -95,11 +99,11 @@ def search(db: Session, q: str, mode: str, limit: int) -> SearchResult:
 
 def related(db: Session, concept_id: UUID, limit: int) -> RelatedResult:
     require_concept(db, concept_id)
-    rows = db.scalars(select(ConceptRelationship).where(
+    rows = db.scalars(select(ConceptRelationship).where(ConceptRelationship.archived_at.is_(None)).where(
         (ConceptRelationship.source_concept_id == concept_id) | (ConceptRelationship.target_concept_id == concept_id)
     ).order_by(ConceptRelationship.confirmed_at.desc()).limit(limit)).all()
     try:
-        profile = configured_profile()
+        profile = active_profile(db)
     except NotConfigured:
         return RelatedResult(confirmed=rows)
     latest = latest_revisions()

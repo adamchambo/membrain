@@ -32,9 +32,11 @@ def main():
             created = True
         for arguments in (["-m", "alembic", "upgrade", "head"],
                           ["-m", "alembic", "check"],
-                          ["-m", "unittest", "discover", "-s", "tests", "-v"],
-                          ["-m", "alembic", "downgrade", "20261018_02"],
-                          ["-m", "alembic", "upgrade", "head"]):
+                          ["-m", "unittest", "discover", "-s", "tests", "-v"]):
+            subprocess.run([sys.executable, *arguments], cwd=cwd, env=env, check=True)
+        from backup_roundtrip import verify
+        verify(admin_url, env["ORACLE_TEST_DATABASE_URL"])
+        for arguments in (["-m", "alembic", "downgrade", "20261018_02"], ["-m", "alembic", "upgrade", "head"]):
             subprocess.run([sys.executable, *arguments], cwd=cwd, env=env, check=True)
     finally:
         if created:

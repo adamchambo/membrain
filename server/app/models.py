@@ -13,6 +13,10 @@ from app.knowledge.models import (
     Resource,
 )
 from app.review.models import ReviewAttempt, ReviewAttemptConcept, ReviewQuestion, ReviewScopeConcept, ReviewSession
+from app.setup.models import BankSettings, ProfileMigration, WorkerHeartbeat
+from app.resources.models import SourceVersion, SourceChunk
+from app.learning.models import Subject, SubjectConcept, LearningArtifact, LearningSuggestion
+from app.portability.models import ImportBatch
 
 __all__ = [
     "Base", "Capture", "AIProposal", "Concept", "CaptureConcept",
@@ -20,4 +24,6 @@ __all__ = [
     "ConceptEmbedding", "ReviewSession", "ReviewScopeConcept", "ReviewAttempt",
     "ReviewAttemptConcept",
     "Conversation", "EmbeddingProfile", "WorkItem", "ReviewQuestion",
+    "BankSettings", "ProfileMigration", "WorkerHeartbeat", "SourceVersion", "SourceChunk",
+    "Subject", "SubjectConcept", "LearningArtifact", "LearningSuggestion", "ImportBatch",
 ]

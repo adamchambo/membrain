@@ -7,11 +7,16 @@ from functools import lru_cache
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine, URL, make_url
 from sqlalchemy.orm import Session
+from app.config import setting
+from app.errors import NotConfigured
 
 
 def database_url() -> URL:
     """Parse the database connection string supplied to the process."""
-    return make_url(os.environ["DATABASE_URL"])
+    value = setting("DATABASE_URL")
+    if not value:
+        raise NotConfigured("Database connection is not configured")
+    return make_url(value)
 
 
 def create_db_engine() -> Engine:

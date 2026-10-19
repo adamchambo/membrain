@@ -31,7 +31,8 @@ class RevisionRead(BaseModel):
     proposal_id: UUID | None
     revision_number: int
     body: str
-    origin: Literal["user_written", "ai_formatted_user_input", "user_edited_format"]
+    origin: Literal["user_written", "ai_formatted_user_input", "user_edited_format", "user_confirmed_suggestion"]
+    suggestion_id: UUID | None = None
     created_at: datetime
     retracted_at: datetime | None = None
 

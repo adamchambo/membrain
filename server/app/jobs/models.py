@@ -21,17 +21,18 @@ class EmbeddingProfile(Base):
 class WorkItem(Base):
     __tablename__ = "work_items"
     __table_args__ = (
-        CheckConstraint("kind IN ('capture', 'embedding', 'review_feedback')", name="work_kind_valid"),
+        CheckConstraint("kind IN ('capture', 'embedding', 'review_feedback', 'profile_migration', 'resource_extract', 'learning')", name="work_kind_valid"),
         CheckConstraint("status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled')", name="work_status_valid"),
         CheckConstraint("(kind = 'capture' AND capture_id IS NOT NULL AND revision_id IS NULL AND attempt_id IS NULL) OR "
                         "(kind = 'embedding' AND revision_id IS NOT NULL AND capture_id IS NULL AND attempt_id IS NULL) OR "
-                        "(kind = 'review_feedback' AND attempt_id IS NOT NULL AND capture_id IS NULL AND revision_id IS NULL)", name="work_target_valid"),
+                        "(kind = 'review_feedback' AND attempt_id IS NOT NULL AND capture_id IS NULL AND revision_id IS NULL) OR "
+                        "(kind IN ('profile_migration', 'resource_extract', 'learning') AND capture_id IS NULL AND revision_id IS NULL AND attempt_id IS NULL)", name="work_target_valid"),
         Index("ix_work_items_schedule", "status", "available_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     dedup_key: Mapped[str] = mapped_column(String(400), unique=True, nullable=False)
-    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
     capture_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("captures.id", ondelete="CASCADE"), nullable=True, index=True)
     revision_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("explanation_revisions.id", ondelete="CASCADE"), nullable=True, index=True)
     attempt_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("review_attempts.id", ondelete="CASCADE"), nullable=True, index=True)
@@ -43,3 +44,5 @@ class WorkItem(Base):
     lease_token: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    arguments: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict, server_default="{}")
+    result: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

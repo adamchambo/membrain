@@ -99,7 +99,8 @@ def process_embedding(engine: Engine, job_id: UUID, token: UUID, embedder=None):
             job.lease_token = None
             return
         if job.profile_key is None:
-            profile = configured_profile()
+            from app.setup.profiles import initialize_active
+            profile = initialize_active(db)
             persist_profile(db, profile)
             job.profile_key = profile.key
         else:
@@ -154,8 +155,20 @@ def run_one(engine: Engine, *, job_id: UUID | None = None, processor=None, embed
             process_capture(engine, record_id, token, processor)
         elif kind == "embedding":
             process_embedding(engine, record_id, token, embedder)
-        else:
+        elif kind == "review_feedback":
             process_feedback(engine, record_id, token, assessor)
+        elif kind == "profile_migration":
+            from app.setup.profiles import populate_migration
+            with Session(engine) as db, db.begin():
+                job = owned_job(db, record_id, token)
+                if job is not None:
+                    job.result = populate_migration(db, job.arguments)
+                    job.status = "succeeded"
+                    job.lease_token = None
+                    job.lease_until = None
+        else:
+            from app.jobs.features import process_feature
+            process_feature(engine, record_id, token, kind)
     except Exception as exc:
         with Session(engine) as db, db.begin():
             job = owned_job(db, record_id, token)
@@ -183,8 +196,13 @@ def main():
 
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
+    worker_id = str(uuid4())
     while not stopped:
         try:
+            from app.setup.models import WorkerHeartbeat
+            with Session(db_engine()) as db, db.begin():
+                db.execute(insert(WorkerHeartbeat).values(id=worker_id, seen_at=datetime.now(timezone.utc))
+                    .on_conflict_do_update(index_elements=[WorkerHeartbeat.id], set_={"seen_at": datetime.now(timezone.utc)}))
             if not run_one(db_engine()):
                 time.sleep(2)
         except Exception as exc:

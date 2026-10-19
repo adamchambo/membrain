@@ -8,6 +8,9 @@ For the full suite, set `ORACLE_TEST_ADMIN_URL` to a development PostgreSQL admi
 connection and run `python tests/run_postgres.py`. This creates a unique disposable
 database, applies all migrations, checks ORM drift, runs the suite, exercises the new
 migrations' downgrade/upgrade path, and removes only that test database in `finally`.
+It also uses `pg_dump` and `pg_restore` to restore a second disposable database and
+compare all mapped table contents. Set `ORACLE_PG_BIN` when the utilities are outside
+PATH (the local fallback is Homebrew PostgreSQL 18).
 The admin connection's existing database is never used for fixtures.
 
 The suite covers immediate saving, topic-only messages, automatic multiple-concept
@@ -16,3 +19,9 @@ worker fencing, vector profile/revision isolation, and saved review answers. A l
 fake HTTP provider exercises transport through to vector retrieval. These checks
 validate the processing mechanics; real model fidelity and retrieval quality need
 evaluation with the configured models and representative user explanations.
+
+Capability tests additionally cover private setup configuration and environment
+precedence, archive/restore, versioned HTML extraction, subject quizzes and history,
+source-citation rejection, explicit suggestion adoption, embedding-profile cutover,
+portable preview/import/retry with circular provenance references, map metadata,
+and permanent-deletion guards. Test configuration uses a temporary private file.

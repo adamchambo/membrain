@@ -15,7 +15,10 @@ def post_json(url: str, payload: dict, api_key: str | None = None) -> dict:
     request = Request(url, data=json.dumps(payload).encode(), headers=headers, method="POST")
     try:
         with urlopen(request, timeout=45) as response:
-            result = json.load(response)
+            raw = response.read(2 * 1024 * 1024 + 1)
+            if len(raw) > 2 * 1024 * 1024:
+                raise ValueError("Provider response exceeds limit")
+            result = json.loads(raw)
         if not isinstance(result, dict):
             raise ValueError("Expected an object")
         return result

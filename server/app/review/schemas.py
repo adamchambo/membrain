@@ -4,12 +4,19 @@ from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class SessionCreate(BaseModel):
-    concept_ids: list[UUID] = Field(min_length=1, max_length=20)
-    mode: Literal["cue_card"] = "cue_card"
+    concept_ids: list[UUID] = Field(default_factory=list, max_length=200)
+    subject_id: UUID | None = None
+    mode: Literal["cue_card", "quiz", "teach_back", "fill_gap", "applied"] = "cue_card"
+
+    @model_validator(mode="after")
+    def one_scope(self):
+        if bool(self.concept_ids) == bool(self.subject_id):
+            raise ValueError("Choose concept_ids or subject_id")
+        return self
 
     @field_validator("concept_ids")
     @classmethod

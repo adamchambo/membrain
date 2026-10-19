@@ -17,12 +17,13 @@ from app.jobs.models import WorkItem
 class WorkRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
-    kind: Literal["capture", "embedding", "review_feedback"]
+    kind: Literal["capture", "embedding", "review_feedback", "profile_migration", "resource_extract", "learning"]
     status: Literal["pending", "running", "succeeded", "failed", "cancelled"]
     attempts: int
     last_error: str | None
     profile_key: str | None
     available_at: datetime
+    result: dict | None = None
 
 
 def enqueue_capture(db: Session, capture_id: UUID) -> UUID:
@@ -31,9 +32,13 @@ def enqueue_capture(db: Session, capture_id: UUID) -> UUID:
 
 def enqueue_embedding(db: Session, revision_id: UUID) -> UUID:
     try:
-        profile = configured_profile()
-        persist_profile(db, profile)
+        from app.setup.profiles import initialize_active
+        from app.setup.models import ProfileMigration
+        profile = initialize_active(db)
         key = profile.key
+        for target in db.scalars(select(ProfileMigration).where(ProfileMigration.status == "running")).all():
+            enqueue(db, dedup_key=f"embedding:{revision_id}:{target.target_profile_key}", kind="embedding",
+                    revision_id=revision_id, profile_key=target.target_profile_key)
     except NotConfigured:
         key = None
     return enqueue(db, dedup_key=f"embedding:{revision_id}:{key or 'unconfigured'}", kind="embedding",

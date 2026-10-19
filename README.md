@@ -2,7 +2,7 @@
 
 Oracle is an early-stage personal knowledge bank for recording what you understand as you learn, connecting it to familiar ideas, and revisiting it later. You explain a concept in your own words; AI may format that explanation for storage while preserving its meaning and uncertainty. Possible corrections and gaps are separate suggestions, not silent changes to your understanding. The intended experience also includes related concepts and review. Those product flows are still being shaped.
 
-This repository contains a FastAPI server, PostgreSQL with pgvector, a background worker, and a small CLI. It supports conversational capture, automatic organization of user explanations, semantic retrieval, and a first cue-card review flow. Graphical clients, accounts, lessons, and broader learning workflows are still being shaped.
+This repository contains a FastAPI server, PostgreSQL with pgvector, a background worker, and a small CLI. The API supports conversational capture, search, subject-scoped review, source uploads, learning suggestions and lessons, map data, and portable bank export/import. Graphical clients and hosted accounts remain future work. Real-model learning quality is still being evaluated.
 
 ## Project layout
 
@@ -22,6 +22,24 @@ Docker Compose starts the API, worker, and database. It reads the ignored root `
 The database is stored in a Docker volume so normal container restarts do not discard it. Capture saves your words immediately and queues organization; a topic introduction alone is context, not a learned explanation. Faithful formatting is banked automatically with provenance. You can inspect, revise, or undo it; suggested factual changes require a separate user decision.
 
 Configure the optional chat-completions endpoint and model in `.env` for organization and review feedback. For embeddings, configure a compatible endpoint, served model/deployment revision, and dimensions (the selected default is Nomic at 768). The revision and preprocessing settings identify a vector profile; semantic search compares only that profile's current explanations. Work remains retryable when models are unavailable. No model weights are bundled or downloaded by the server.
+
+Alternatively, run `python -m app.setup --migrate` from `server/` for the terminal
+setup wizard. It saves private settings in ignored `.local/config.json`; nonempty
+environment values take precedence. Compose shares a configuration volume between
+the API and worker. `/health/ready` reports database migrations, worker heartbeat,
+and work counts; explicit model probes are available through setup administration.
+Set `ORACLE_SETUP_TOKEN` for configuration writes, profile migrations, export/import,
+and permanent deletion, then send it as `X-Oracle-Setup-Token`.
+
+Sources currently support uploaded UTF-8 TXT, Markdown, and HTML up to 2 MiB.
+URL bookmarks do not fetch content automatically. Generated teaching content and
+source excerpts remain separate from your banked explanations. Corrections require
+a user decision and create a new revision. Review feedback compares recall to a
+snapshot; it does not establish factual truth or mastery.
+
+See [API operation notes](server/API.md), [backup and portability](server/BACKUPS.md),
+and [local-model evaluation](server/evaluations/README.md). Voice transcription and
+3D projection are deferred.
 
 From the repository root, start or resume a capture conversation:
 
