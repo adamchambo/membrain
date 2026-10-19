@@ -8,9 +8,11 @@ from sqlalchemy.orm import Session
 
 from app.ai.formatter import Formatter, get_formatter
 from app.captures import service
+from app.captures import ingestion
 from app.captures.schemas import (
     BankCapture, BankResult, CaptureCreate, CaptureDetail, CapturePage,
     CaptureRead, CaptureStatus, ProposalKind, ProposalPage, ProposalRead,
+    CaptureReceipt, ConversationRead, QuickCapture,
 )
 from app.database import get_db
 
@@ -21,6 +23,23 @@ Db = Annotated[Session, Depends(get_db)]
 @router.post("/captures", response_model=CaptureRead, status_code=201)
 def create_capture(data: CaptureCreate, db: Db):
     return service.create_capture(db, data)
+
+
+@router.post("/captures/ingest", response_model=CaptureReceipt, status_code=201)
+def ingest_capture(data: QuickCapture, db: Db):
+    """Save now, then organize in the worker without a mandatory approval step."""
+    return ingestion.ingest(db, data)
+
+
+@router.get("/conversations/{conversation_id}", response_model=ConversationRead)
+def conversation_history(conversation_id: UUID, db: Db, cursor: str | None = None,
+                         limit: Annotated[int, Query(ge=1, le=100)] = 25):
+    return ingestion.conversation_history(db, conversation_id, cursor, limit)
+
+
+@router.post("/captures/{capture_id}/undo", status_code=204)
+def undo_capture(capture_id: UUID, db: Db):
+    ingestion.undo_capture(db, capture_id)
 
 
 @router.get("/captures", response_model=CapturePage)

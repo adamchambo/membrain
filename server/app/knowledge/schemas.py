@@ -33,6 +33,7 @@ class RevisionRead(BaseModel):
     body: str
     origin: Literal["user_written", "ai_formatted_user_input", "user_edited_format"]
     created_at: datetime
+    retracted_at: datetime | None = None
 
 
 class RevisionPage(BaseModel):
@@ -70,6 +71,7 @@ class ResourceRead(BaseModel):
     title: str | None
     note: str | None
     created_at: datetime
+    archived_at: datetime | None = None
 
 
 class ResourceDetail(ResourceRead):

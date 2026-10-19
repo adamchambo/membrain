@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.captures.models import Capture
@@ -14,6 +14,8 @@ from app.knowledge.schemas import (
     ConceptDetail, ConceptSummary, RelationshipCreate, ResourceCreate, ResourceDetail, RevisionCreate,
 )
 from app.pagination import before_cursor, encode_cursor
+from app.jobs.service import enqueue_embedding
+from app.jobs.models import WorkItem
 
 
 def require_concept(db: Session, concept_id: UUID) -> Concept:
@@ -24,7 +26,8 @@ def require_concept(db: Session, concept_id: UUID) -> Concept:
 
 
 def latest_revision(db: Session, concept_id: UUID):
-    return db.scalar(select(ExplanationRevision).where(ExplanationRevision.concept_id == concept_id)
+    return db.scalar(select(ExplanationRevision).where(ExplanationRevision.concept_id == concept_id,
+                     ExplanationRevision.retracted_at.is_(None))
                      .order_by(ExplanationRevision.revision_number.desc()).limit(1))
 
 
@@ -47,7 +50,7 @@ def list_concepts(db: Session, cursor: str | None, limit: int, include_archived:
 def get_concept(db: Session, concept_id: UUID) -> ConceptDetail:
     concept = require_concept(db, concept_id)
     resources = db.scalars(select(Resource).join(ConceptResource, Resource.id == ConceptResource.resource_id)
-                           .where(ConceptResource.concept_id == concept_id).order_by(Resource.created_at.desc())).all()
+                           .where(ConceptResource.concept_id == concept_id, Resource.archived_at.is_(None)).order_by(Resource.created_at.desc())).all()
     relationships = db.scalars(select(ConceptRelationship)
         .where((ConceptRelationship.source_concept_id == concept_id) | (ConceptRelationship.target_concept_id == concept_id))
         .order_by(ConceptRelationship.confirmed_at.desc())).all()
@@ -73,14 +76,15 @@ def add_revision(db: Session, concept_id: UUID, data: RevisionCreate) -> Explana
             raise Conflict("Archived concepts cannot receive revisions")
         if data.capture_id and db.get(Capture, data.capture_id) is None:
             raise NotFound("Capture not found")
-        previous = latest_revision(db, concept_id)
+        last_number = db.scalar(select(func.max(ExplanationRevision.revision_number)).where(ExplanationRevision.concept_id == concept_id)) or 0
         revision = ExplanationRevision(concept_id=concept_id, capture_id=data.capture_id,
-            revision_number=(previous.revision_number if previous else 0) + 1,
+            revision_number=last_number + 1,
             body=data.explanation_text, origin="user_written")
         db.add(revision)
         if data.capture_id and db.get(CaptureConcept, (data.capture_id, concept_id)) is None:
             db.add(CaptureConcept(capture_id=data.capture_id, concept_id=concept_id))
         db.flush()
+        enqueue_embedding(db, revision.id)
     return revision
 
 
@@ -98,14 +102,18 @@ def get_resource(db: Session, resource_id: UUID) -> ResourceDetail:
         raise NotFound("Resource not found")
     ids = db.scalars(select(ConceptResource.concept_id).where(ConceptResource.resource_id == resource_id)).all()
     return ResourceDetail(id=resource.id, capture_id=resource.capture_id, kind=resource.kind, uri=resource.uri,
-                          title=resource.title, note=resource.note, created_at=resource.created_at, concept_ids=ids)
+                          title=resource.title, note=resource.note, created_at=resource.created_at,
+                          archived_at=resource.archived_at, concept_ids=ids)
 
 
 def attach_resource(db: Session, concept_id: UUID, resource_id: UUID):
     with db.begin():
         require_concept(db, concept_id)
-        if db.get(Resource, resource_id) is None:
+        resource = db.get(Resource, resource_id)
+        if resource is None:
             raise NotFound("Resource not found")
+        if resource.archived_at:
+            raise Conflict("Resource has been archived")
         if db.get(ConceptResource, (concept_id, resource_id)) is not None:
             raise Conflict("Resource is already attached")
         db.add(ConceptResource(concept_id=concept_id, resource_id=resource_id))
@@ -146,3 +154,14 @@ def add_relationship(db: Session, concept_id: UUID, data: RelationshipCreate) ->
         db.add(relationship)
         db.flush()
     return relationship
+
+
+def queue_current_embedding(db: Session, concept_id: UUID) -> WorkItem:
+    with db.begin():
+        concept = require_concept(db, concept_id)
+        revision = latest_revision(db, concept_id)
+        if concept.archived_at or revision is None:
+            raise Conflict("Concept has no active explanation to embed")
+        job_id = enqueue_embedding(db, revision.id)
+        job = db.get(WorkItem, job_id)
+    return job

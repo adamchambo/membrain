@@ -13,11 +13,14 @@ from app.captures.schemas import BankCapture, BankResult, CaptureCreate
 from app.errors import Conflict, NotFound
 from app.knowledge.models import CaptureConcept, Concept, ExplanationRevision
 from app.pagination import before_cursor, encode_cursor
+from app.jobs.service import enqueue_embedding
+from app.captures.prompts.formatting import FORMAT_VERSION
+from app.jobs.models import WorkItem
 
 
 def create_capture(db: Session, data: CaptureCreate) -> Capture:
     with db.begin():
-        capture = Capture(raw_text=data.raw_text.strip(), input_kind=data.input_kind, status="pending")
+        capture = Capture(raw_text=data.raw_text, input_kind=data.input_kind, status="pending")
         db.add(capture)
         db.flush()
     return capture
@@ -56,13 +59,17 @@ def format_capture(db: Session, capture_id: UUID, formatter: Formatter) -> AIPro
 
     candidate = formatter.format(raw_text)
     with db.begin():
-        if db.get(Capture, capture_id) is None:
+        current = db.scalar(select(Capture).where(Capture.id == capture_id).with_for_update().execution_options(populate_existing=True))
+        if current is None:
             raise NotFound("Capture not found")
+        if current.status == "archived":
+            raise Conflict("Archived captures cannot be formatted")
         proposal = AIProposal(
             capture_id=capture_id,
             kind="formatting",
             payload=candidate.model_dump(),
             model_key=formatter.model_key,
+            prompt_version=FORMAT_VERSION,
             status="pending",
         )
         db.add(proposal)
@@ -143,9 +150,12 @@ def bank_capture(db: Session, capture_id: UUID, data: BankCapture) -> BankResult
         capture.status = "processed"
         if proposal:
             proposal.status = "accepted"
+            proposal.application_mode = "user"
             proposal.reviewed_at = datetime.now(timezone.utc)
         db.flush()
-        result = BankResult(concept_id=concept.id, revision_id=revision.id, origin=origin, embedding_status="not_configured")
+        job_id = enqueue_embedding(db, revision.id)
+        result = BankResult(concept_id=concept.id, revision_id=revision.id, origin=origin,
+                            embedding_status="pending" if db.get(WorkItem, job_id).profile_key else "not_configured")
     return result
 
 

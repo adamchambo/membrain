@@ -12,7 +12,7 @@ ProposalKind = Literal["formatting", "correction", "gap", "relationship", "clari
 
 
 class CaptureCreate(BaseModel):
-    raw_text: str = Field(min_length=1)
+    raw_text: str = Field(min_length=1, max_length=20000)
     input_kind: Literal["text", "voice_transcript"] = "text"
 
     @field_validator("raw_text")
@@ -31,6 +31,8 @@ class CaptureRead(BaseModel):
     input_kind: str
     status: CaptureStatus
     created_at: datetime
+    conversation_id: UUID | None = None
+    reply_to_proposal_id: UUID | None = None
 
 
 class CapturePage(BaseModel):
@@ -46,6 +48,8 @@ class ProposalRead(BaseModel):
     kind: ProposalKind
     payload: dict[str, Any]
     model_key: str
+    prompt_version: str | None = None
+    application_mode: Literal["automatic", "user"] | None = None
     status: Literal["pending", "accepted", "rejected"]
     created_at: datetime
     reviewed_at: datetime | None
@@ -86,3 +90,25 @@ class BankResult(BaseModel):
     revision_id: UUID
     origin: Literal["user_written", "ai_formatted_user_input", "user_edited_format"]
     embedding_status: Literal["not_configured", "pending"]
+
+
+class QuickCapture(CaptureCreate):
+    conversation_id: UUID | None = None
+    request_id: UUID | None = None
+    reply_to_proposal_id: UUID | None = None
+
+
+class CaptureReceipt(BaseModel):
+    capture_id: UUID
+    conversation_id: UUID
+    processing_job_id: UUID
+    resource_ids: list[UUID]
+    saved: bool = True
+    message: str = "Saved"
+
+
+class ConversationRead(BaseModel):
+    id: UUID
+    title: str | None
+    captures: list[CaptureRead]
+    next_cursor: str | None

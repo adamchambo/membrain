@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.jobs.service import WorkRead
 from app.knowledge import service
 from app.knowledge.schemas import (
     ConceptDetail, ConceptPage, RelationshipCreate, RelationshipPage, RelationshipRead,
@@ -27,6 +28,12 @@ def list_concepts(db: Db, cursor: str | None = None, limit: Limit = 25, include_
 @router.get("/concepts/{concept_id}", response_model=ConceptDetail)
 def get_concept(concept_id: UUID, db: Db):
     return service.get_concept(db, concept_id)
+
+
+@router.post("/concepts/{concept_id}/embedding", response_model=WorkRead, status_code=202)
+def queue_embedding(concept_id: UUID, db: Db):
+    """Queue the current explanation under the active embedding profile."""
+    return service.queue_current_embedding(db, concept_id)
 
 
 @router.get("/concepts/{concept_id}/revisions", response_model=RevisionPage)

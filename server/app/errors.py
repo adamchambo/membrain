@@ -28,5 +28,9 @@ class Unavailable(AppError):
     code = "unavailable"
 
 
+class NotConfigured(Unavailable):
+    code = "not_configured"
+
+
 async def app_error_handler(_request: Request, error: AppError) -> JSONResponse:
     return JSONResponse(status_code=error.status_code, content={"code": error.code, "detail": error.message})

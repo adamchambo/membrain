@@ -15,17 +15,39 @@ services:
 
   api:
     build: ./server
-    environment:
+    environment: &oracle_environment
       DATABASE_URL: "postgresql+psycopg://oracle:${ORACLE_DB_PASSWORD:?Set ORACLE_DB_PASSWORD in .env}@db:5432/oracle"
       ORACLE_CHAT_COMPLETIONS_URL: "${ORACLE_CHAT_COMPLETIONS_URL:-}"
       ORACLE_CHAT_MODEL: "${ORACLE_CHAT_MODEL:-}"
       ORACLE_CHAT_API_KEY: "${ORACLE_CHAT_API_KEY:-}"
+      ORACLE_EMBEDDINGS_URL: "${ORACLE_EMBEDDINGS_URL:-}"
+      ORACLE_EMBEDDING_MODEL: "${ORACLE_EMBEDDING_MODEL:-nomic-embed-text-v1.5}"
+      ORACLE_EMBEDDING_REVISION: "${ORACLE_EMBEDDING_REVISION:-}"
+      ORACLE_EMBEDDING_DIMENSIONS: "${ORACLE_EMBEDDING_DIMENSIONS:-768}"
+      ORACLE_EMBEDDING_DOCUMENT_PREFIX: "${ORACLE_EMBEDDING_DOCUMENT_PREFIX-search_document: }"
+      ORACLE_EMBEDDING_QUERY_PREFIX: "${ORACLE_EMBEDDING_QUERY_PREFIX-search_query: }"
+      ORACLE_EMBEDDING_API_KEY: "${ORACLE_EMBEDDING_API_KEY:-}"
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "127.0.0.1:8000:8000"
     command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  worker:
+    build: ./server
+    environment: *oracle_environment
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["python", "-m", "app.jobs.worker"]
+    stop_grace_period: 60s
+    restart: unless-stopped
 
 volumes:
   oracle_postgres:
