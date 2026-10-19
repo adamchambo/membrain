@@ -17,6 +17,9 @@ services:
     build: ./server
     environment:
       DATABASE_URL: "postgresql+psycopg://oracle:${ORACLE_DB_PASSWORD:?Set ORACLE_DB_PASSWORD in .env}@db:5432/oracle"
+      ORACLE_CHAT_COMPLETIONS_URL: "${ORACLE_CHAT_COMPLETIONS_URL:-}"
+      ORACLE_CHAT_MODEL: "${ORACLE_CHAT_MODEL:-}"
+      ORACLE_CHAT_API_KEY: "${ORACLE_CHAT_API_KEY:-}"
     depends_on:
       db:
         condition: service_healthy
