@@ -25,3 +25,9 @@ precedence, archive/restore, versioned HTML extraction, subject quizzes and hist
 source-citation rejection, explicit suggestion adoption, embedding-profile cutover,
 portable preview/import/retry with circular provenance references, map metadata,
 and permanent-deletion guards. Test configuration uses a temporary private file.
+
+CLI SDK journeys also cover capture/search/review, real loopback HTTP transport,
+possible-gap diagnostics and separate lessons, resource browsing, subject scope,
+conversation pagination, local resume IDs, and partial provider configuration.
+Install the local SDK/client packages before running these cases; the database
+fixtures still require the disposable `oracle_test_*` guard.

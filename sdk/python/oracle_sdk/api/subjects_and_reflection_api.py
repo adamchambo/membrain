@@ -105,7 +105,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MembershipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -180,7 +179,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MembershipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -255,7 +253,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MembershipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -388,7 +385,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "SubjectRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -459,7 +455,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "SubjectRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -530,7 +525,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "SubjectRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -673,7 +667,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SubjectList",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -744,7 +737,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SubjectList",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -815,7 +807,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SubjectList",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -955,7 +946,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReflectionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1034,7 +1024,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReflectionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1113,7 +1102,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReflectionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1273,7 +1261,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReviewHistory",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1344,7 +1331,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReviewHistory",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1415,7 +1401,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReviewHistory",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1547,7 +1532,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SessionDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1618,7 +1602,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SessionDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1689,7 +1672,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SessionDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1819,7 +1801,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SubjectScopeRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1890,7 +1871,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SubjectScopeRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1961,7 +1941,6 @@ class SubjectsAndReflectionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SubjectScopeRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",

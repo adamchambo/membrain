@@ -17,15 +17,16 @@ public struct TaskCreate: Sendable, Codable {
         case workedExample = "worked_example"
         case diagram = "diagram"
     }
-    public static let conceptIdsRule = ArrayRule(minItems: 1, maxItems: 20, uniqueItems: false)
+    public static let conceptIdsRule = ArrayRule(minItems: nil, maxItems: 20, uniqueItems: false)
     public static let questionRule = StringRule(minLength: nil, maxLength: 4000, pattern: nil)
     public static let resourceIdsRule = ArrayRule(minItems: nil, maxItems: 10, uniqueItems: false)
-    public var conceptIds: [UUID]
+    /** Recorded scope, or empty for an explicit new teaching/clarification question. */
+    public var conceptIds: [UUID]?
     public var kind: Kind
     public var question: String? = ""
     public var resourceIds: [UUID]?
 
-    public init(conceptIds: [UUID], kind: Kind, question: String? = "", resourceIds: [UUID]? = nil) {
+    public init(conceptIds: [UUID]? = nil, kind: Kind, question: String? = "", resourceIds: [UUID]? = nil) {
         self.conceptIds = conceptIds
         self.kind = kind
         self.question = question
@@ -43,7 +44,7 @@ public struct TaskCreate: Sendable, Codable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(conceptIds, forKey: .conceptIds)
+        try container.encodeIfPresent(conceptIds, forKey: .conceptIds)
         try container.encode(kind, forKey: .kind)
         try container.encodeIfPresent(question, forKey: .question)
         try container.encodeIfPresent(resourceIds, forKey: .resourceIds)

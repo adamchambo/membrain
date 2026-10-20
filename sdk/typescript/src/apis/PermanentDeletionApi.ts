@@ -19,11 +19,6 @@ import {
     ErrorResponseToJSON,
 } from '../models/ErrorResponse.js';
 import {
-    type HTTPErrorResponse,
-    HTTPErrorResponseFromJSON,
-    HTTPErrorResponseToJSON,
-} from '../models/HTTPErrorResponse.js';
-import {
     type ValidationErrorResponse,
     ValidationErrorResponseFromJSON,
     ValidationErrorResponseToJSON,
@@ -70,10 +65,6 @@ export class PermanentDeletionApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-Oracle-Setup-Token"] = await this.configuration.apiKey("X-Oracle-Setup-Token"); // SetupToken authentication
-        }
-
 
         let urlPath = `/api/v1/captures/{capture_id}`;
         urlPath = urlPath.replace('{capture_id}', encodeURIComponent(String(requestParameters['captureId'])));
@@ -118,10 +109,6 @@ export class PermanentDeletionApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-Oracle-Setup-Token"] = await this.configuration.apiKey("X-Oracle-Setup-Token"); // SetupToken authentication
-        }
-
 
         let urlPath = `/api/v1/concepts/{concept_id}`;
         urlPath = urlPath.replace('{concept_id}', encodeURIComponent(String(requestParameters['conceptId'])));
@@ -165,10 +152,6 @@ export class PermanentDeletionApi extends runtime.BaseAPI {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-Oracle-Setup-Token"] = await this.configuration.apiKey("X-Oracle-Setup-Token"); // SetupToken authentication
-        }
 
 
         let urlPath = `/api/v1/resources/{resource_id}`;

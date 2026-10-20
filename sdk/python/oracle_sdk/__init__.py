@@ -76,7 +76,6 @@ __all__ = [
     "EmbeddingEndpoint",
     "Endpoint",
     "ErrorResponse",
-    "HTTPErrorResponse",
     "HealthResponse",
     "ImportRead",
     "ImportRequest",
@@ -204,7 +203,6 @@ from oracle_sdk.models.detail import Detail as Detail
 from oracle_sdk.models.embedding_endpoint import EmbeddingEndpoint as EmbeddingEndpoint
 from oracle_sdk.models.endpoint import Endpoint as Endpoint
 from oracle_sdk.models.error_response import ErrorResponse as ErrorResponse
-from oracle_sdk.models.http_error_response import HTTPErrorResponse as HTTPErrorResponse
 from oracle_sdk.models.health_response import HealthResponse as HealthResponse
 from oracle_sdk.models.import_read import ImportRead as ImportRead
 from oracle_sdk.models.import_request import ImportRequest as ImportRequest

@@ -51,8 +51,8 @@ are ignored by drift comparisons. Review generated diffs when changing the API.
 
 ## Verify generated clients
 
-Python requires 3.10+ (the server environment uses 3.12). The standalone CLI stub
-still runs on 3.9; connecting it to this SDK will require raising that minimum.
+Python requires 3.10+ (the server environment uses 3.12). The live CLI also requires Python 3.10+ and uses this generated SDK;
+its explicit stub mode shares that runtime.
 
 ```sh
 .venv/bin/python -m pip install ./sdk/python

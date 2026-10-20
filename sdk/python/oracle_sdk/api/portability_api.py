@@ -87,7 +87,6 @@ class PortabilityApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "BankDocument",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -154,7 +153,6 @@ class PortabilityApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "BankDocument",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -221,7 +219,6 @@ class PortabilityApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "BankDocument",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -274,7 +271,6 @@ class PortabilityApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(
@@ -349,7 +345,6 @@ class PortabilityApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ImportRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -420,7 +415,6 @@ class PortabilityApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ImportRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -491,7 +485,6 @@ class PortabilityApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ImportRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -560,7 +553,6 @@ class PortabilityApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(

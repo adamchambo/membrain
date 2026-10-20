@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from app.database import get_db
-from app.http_contract import ValidationErrorResponse, HTTPErrorResponse
+from app.http_contract import ValidationErrorResponse
 from app.main import app
 from test_ingestion import asgi_call
 
@@ -41,25 +41,32 @@ class ContractTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             codegen.audit_contract(bad)
 
-    def test_setup_token_is_security_requirement_only_for_admin_operations(self):
+    def test_local_api_has_no_authentication_contract(self):
         schema = app.openapi()
-        for path, method in [("/api/v1/setup", "put"), ("/api/v1/bank/export", "get"), ("/api/v1/resources/{resource_id}", "delete")]:
-            op = schema["paths"][path][method]
-            self.assertEqual(op["security"], [{"SetupToken": []}])
-            self.assertFalse(any(p.get("name") == "x-oracle-setup-token" for p in op.get("parameters", [])))
-        self.assertNotIn("security", schema["paths"]["/api/v1/captures/ingest"]["post"])
-        self.assertEqual(schema["components"]["securitySchemes"]["SetupToken"]["in"], "header")
+        self.assertFalse(schema.get("security"))
+        self.assertFalse(schema.get("components", {}).get("securitySchemes"))
+        for methods in schema["paths"].values():
+            for method, operation in methods.items():
+                if method in codegen.METHODS:
+                    self.assertFalse(operation.get("security"))
+                    self.assertNotIn("403", operation["responses"])
 
-    def test_validation_and_forbidden_responses_match_documented_models(self):
+    def test_local_setup_write_accepts_no_credentials(self):
+        settings = {"database_configured": False,
+                    "chat": {"configured": False, "model": None},
+                    "embeddings": {"configured": False, "model": None}}
+        with patch("app.setup.router.service.save_settings", return_value=settings) as save:
+            status, body = asyncio.run(asgi_call("PUT", "/api/v1/setup", {}))
+        self.assertEqual(status, 200)
+        self.assertFalse(body["database_configured"])
+        save.assert_called_once()
+
+    def test_validation_response_matches_documented_model(self):
         app.dependency_overrides[get_db] = lambda: None
         try:
             status, body = asyncio.run(asgi_call("GET", "/api/v1/captures/not-a-uuid"))
             self.assertEqual(status, 422)
             ValidationErrorResponse.model_validate(body)
-            with patch.dict("os.environ", {"ORACLE_SETUP_TOKEN": "test-token"}):
-                status, body = asyncio.run(asgi_call("PUT", "/api/v1/setup", {}))
-            self.assertEqual(status, 403)
-            HTTPErrorResponse.model_validate(body)
         finally:
             app.dependency_overrides.pop(get_db, None)
 

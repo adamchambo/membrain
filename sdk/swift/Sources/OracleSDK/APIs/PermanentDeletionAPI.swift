@@ -26,9 +26,6 @@ open class PermanentDeletionAPI {
     /**
      Delete Capture
      - DELETE /api/v1/captures/{capture_id}
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - parameter captureId: (path)  
      - returns: RequestBuilder<Void> 
      */
@@ -50,7 +47,7 @@ open class PermanentDeletionAPI {
 
         let localVariableRequestBuilder: RequestBuilder<Void>.Type = apiConfiguration.requestBuilderFactory.getNonDecodableBuilder()
 
-        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -66,9 +63,6 @@ open class PermanentDeletionAPI {
     /**
      Delete Concept
      - DELETE /api/v1/concepts/{concept_id}
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - parameter conceptId: (path)  
      - returns: RequestBuilder<Void> 
      */
@@ -90,7 +84,7 @@ open class PermanentDeletionAPI {
 
         let localVariableRequestBuilder: RequestBuilder<Void>.Type = apiConfiguration.requestBuilderFactory.getNonDecodableBuilder()
 
-        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -106,9 +100,6 @@ open class PermanentDeletionAPI {
     /**
      Delete Resource
      - DELETE /api/v1/resources/{resource_id}
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - parameter resourceId: (path)  
      - returns: RequestBuilder<Void> 
      */
@@ -130,6 +121,6 @@ open class PermanentDeletionAPI {
 
         let localVariableRequestBuilder: RequestBuilder<Void>.Type = apiConfiguration.requestBuilderFactory.getNonDecodableBuilder()
 
-        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "DELETE", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 }

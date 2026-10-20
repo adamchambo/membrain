@@ -35,7 +35,6 @@ export * from './Detail.js';
 export * from './EmbeddingEndpoint.js';
 export * from './Endpoint.js';
 export * from './ErrorResponse.js';
-export * from './HTTPErrorResponse.js';
 export * from './HealthResponse.js';
 export * from './ImportRead.js';
 export * from './ImportRequest.js';

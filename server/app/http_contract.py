@@ -9,10 +9,6 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
-class HTTPErrorResponse(BaseModel):
-    detail: str
-
-
 def disjoint_union(schema: dict) -> None:
     """String/integer and string/array alternatives are mutually exclusive."""
     schema["oneOf"] = schema.pop("anyOf")
@@ -36,7 +32,6 @@ def operation_id(route: APIRoute) -> str:
 
 
 ERROR_RESPONSES = {
-    403: {"model": HTTPErrorResponse, "description": "Setup administration token missing or invalid."},
     404: {"model": ErrorResponse, "description": "Requested record not found."},
     409: {"model": ErrorResponse, "description": "Operation conflicts with current state or scope."},
     422: {"model": ValidationErrorResponse, "description": "Request validation failed."},

@@ -29,7 +29,7 @@ class TaskCreate(BaseModel):
     """
     TaskCreate
     """ # noqa: E501
-    concept_ids: Annotated[List[UUID], Field(min_length=1, max_length=20)]
+    concept_ids: Optional[Annotated[List[UUID], Field(max_length=20)]] = Field(default=None, description="Recorded scope, or empty for an explicit new teaching/clarification question.")
     kind: StrictStr
     question: Optional[Annotated[str, Field(strict=True, max_length=4000)]] = ''
     resource_ids: Optional[Annotated[List[UUID], Field(max_length=10)]] = None

@@ -25,12 +25,13 @@ MENUS = {
     )),
     "explore": Menu("Explore", (
         ("Search", "@bank.search"),
+        ("Browse concepts", "@bank.concepts"),
         ("Browse subjects", "@bank.subjects"),
         ("Recent additions and changes", "@bank.recents"),
         ("Learning timeline", "@bank.timeline"),
         ("Browse resources", "@bank.resources"),
     )),
-    "bank_results": Menu("Search results (stub)", (
+    "bank_results": Menu("Search results", (
         ("Select a concept or resource", "@bank.select"),
     )),
     "concept": Menu("Selected item", (
@@ -42,6 +43,8 @@ MENUS = {
         ("Review", "formats"),
         ("Investigate possible gaps", "@gap.start"),
     )),
+    "subject": Menu("Selected subject", (("Browse its concepts", "@bank.subject_members"), ("Review this scope", "formats"), ("Investigate possible gaps", "@gap.suggest"), ("Reflect", "@reflect.run"))),
+    "resource": Menu("Selected resource", (("Read saved resource and extracted content", "@bank.read"), ("Archive resource", "@bank.archive"))),
     "manage": Menu("Manage selected item", (
         ("Attach a resource", "@bank.attach"),
         ("Edit explanation", "@bank.edit"),
@@ -58,10 +61,10 @@ MENUS = {
         ("Request a worked example", "@learn.example"),
         ("Request a textual diagram", "@learn.diagram"),
         ("Explain my updated understanding", "@clarify.explain"),
-        ("Inspect proposed corrections or connections", "suggestion"),
+        ("Inspect proposed corrections or connections", "@suggestion.list"),
         ("Try a review question", "formats"),
     )),
-    "suggestion": Menu("Suggestion (stub; no generated claim)", (
+    "suggestion": Menu("Selected suggestion", (
         ("Adopt explicitly", "@suggestion.adopt"),
         ("Investigate further", "@clarify.start"),
         ("Dismiss", "@suggestion.dismiss"),
@@ -70,6 +73,7 @@ MENUS = {
         ("Broad subject", "@review.subject"),
         ("Narrow topic or concept", "@review.concept"),
         ("Suggest a scope for me", "@review.suggest"),
+        ("Resume an unfinished review", "@review.history"),
     )),
     "scope": Menu("Confirm review scope", (
         ("Use this scope", "formats"),
@@ -93,11 +97,14 @@ MENUS = {
         ("Suggest an area to investigate", "@gap.suggest"),
         ("Surprise me", "@gap.surprise"),
     )),
+    "gap_kind": Menu("Choose gap scope", (("Concept", "@gap.concept"), ("Subject", "@gap.subject"))),
+    "capture_item": Menu("Saved capture", (("Inspect capture", "@capture.inspect"), ("Reply to an unresolved question", "@clarify.unresolved"), ("Undo derived changes", "@capture.undo"))),
     "gap_scope": Menu("Investigate selected scope", (
-        ("Investigate this whole scope", "@gap.start"),
+        ("Investigate this whole scope", "@gap.suggest"),
         ("Narrow it further", "@gap.choose"),
     )),
     "gap_candidate": Menu("Possible gap (unassessed)", (
+        ("Inspect result and suggestions", "@suggestion.list"),
         ("Answer a diagnostic question", "@gap.start"),
         ("Mark familiar and optionally explain", "@gap.familiar"),
         ("Dismiss suggestion", "@suggestion.dismiss"),
@@ -123,7 +130,7 @@ MENUS = {
         ("Choose a time period", "@reflect.period"),
         ("Combine subject and period", "@reflect.both"),
     )),
-    "reflection": Menu("Reflection results (stub)", (
+    "reflection": Menu("Reflection results", (
         ("Revisit explanation changes", "@bank.history"),
         ("Inspect unresolved questions or difficulties", "@clarify.unresolved"),
         ("Review something unassessed", "review"),
@@ -134,9 +141,9 @@ MENUS = {
         ("Find an older conversation", "@chat.find"),
     )),
     "status": Menu("Processing status", (
-        ("Pending or running work", "@jobs.pending"),
-        ("Failed work", "@jobs.failed"),
-        ("Completed work", "@jobs.completed"),
+        ("Pending or running work", "@jobs.list.pending"),
+        ("Failed work", "@jobs.list.failed"),
+        ("Completed work", "@jobs.list.completed"),
     )),
     "job": Menu("Selected job", (
         ("Inspect progress or failure reason", "@jobs.inspect"),

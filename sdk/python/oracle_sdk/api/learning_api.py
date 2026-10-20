@@ -94,7 +94,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ArtifactRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -165,7 +164,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ArtifactRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -236,7 +234,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ArtifactRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -366,7 +363,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "TaskReceipt",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -437,7 +433,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "TaskReceipt",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -508,7 +503,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "TaskReceipt",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -656,7 +650,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DecisionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -732,7 +725,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DecisionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -808,7 +800,6 @@ class LearningApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "DecisionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",

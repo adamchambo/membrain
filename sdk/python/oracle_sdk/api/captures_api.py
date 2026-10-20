@@ -107,7 +107,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "BankResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -182,7 +181,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "BankResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -257,7 +255,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "BankResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -411,7 +408,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConversationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -490,7 +486,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConversationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -569,7 +564,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConversationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -709,7 +703,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "CaptureRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -780,7 +773,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "CaptureRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -851,7 +843,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "CaptureRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -994,7 +985,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "ProposalRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1065,7 +1055,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "ProposalRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1136,7 +1125,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "ProposalRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1266,7 +1254,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "CaptureDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1337,7 +1324,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "CaptureDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1408,7 +1394,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "CaptureDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1539,7 +1524,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "CaptureReceipt",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1611,7 +1595,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "CaptureReceipt",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1683,7 +1666,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "CaptureReceipt",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1834,7 +1816,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "CapturePage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1913,7 +1894,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "CapturePage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1992,7 +1972,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "CapturePage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2146,7 +2125,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ProposalPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2229,7 +2207,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ProposalPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2312,7 +2289,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ProposalPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2457,7 +2433,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ProposalRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2528,7 +2503,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ProposalRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2599,7 +2573,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ProposalRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2729,7 +2702,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2800,7 +2772,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2871,7 +2842,6 @@ class CapturesApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",

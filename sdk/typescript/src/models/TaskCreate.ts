@@ -20,9 +20,9 @@ import { mapValues } from '../runtime.js';
  */
 export interface TaskCreate {
     /**
-     * 
+     * Recorded scope, or empty for an explicit new teaching/clarification question.
      */
-    conceptIds: Array<string>;
+    conceptIds?: Array<string>;
     /**
      * 
      */
@@ -56,7 +56,6 @@ export type TaskCreateKindEnum = typeof TaskCreateKindEnum[keyof typeof TaskCrea
  * Check if a given object implements the TaskCreate interface.
  */
 export function instanceOfTaskCreate(value: object): value is TaskCreate {
-    if ((!('conceptIds' in (value as Record<string, any>)) && !('concept_ids' in (value as Record<string, any>))) || ((value as Record<string, any>)['conceptIds'] === undefined && (value as Record<string, any>)['concept_ids'] === undefined)) return false;
     if (!('kind' in value) || value['kind'] === undefined) return false;
     return true;
 }
@@ -71,7 +70,7 @@ export function TaskCreateFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     }
     return {
         
-        'conceptIds': json['concept_ids'],
+        'conceptIds': json['concept_ids'] == null ? undefined : json['concept_ids'],
         'kind': json['kind'],
         'question': json['question'] == null ? undefined : json['question'],
         'resourceIds': json['resource_ids'] == null ? undefined : json['resource_ids'],

@@ -1,6 +1,5 @@
 """Capability journeys use only disposable data and injected task providers."""
 
-import asyncio
 import base64
 import json
 import os
@@ -43,7 +42,7 @@ class CapabilityTests(unittest.TestCase):
         self.process(receipt, support.output(support.understanding("Binary", text)))
         return self.rows(Concept)[-1]
 
-    def test_configuration_is_private_env_precedence_and_admin_guard(self):
+    def test_configuration_is_private_env_precedence_and_local_setup(self):
         settings = SetupConfiguration.model_validate({"chat": {"url": "http://localhost:11434/v1/chat/completions", "model": "local", "api_key": "synthetic-secret"}})
         result = save_settings(settings)
         self.assertNotIn("synthetic-secret", json.dumps(result))
@@ -51,7 +50,7 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(read_config()["settings"]["ORACLE_CHAT_MODEL"], "local")
         with patch.dict(os.environ, {"ORACLE_CHAT_MODEL": "environment"}):
             self.assertEqual(safe_settings()["chat"]["model"], "environment")
-        self.api("PUT", "/setup", {}, 403)
+        self.api("PUT", "/setup", {})
         self.api("GET", "/setup")
 
     def test_archive_and_restore_preserve_explanations_and_search(self):
@@ -181,22 +180,26 @@ class CapabilityTests(unittest.TestCase):
 
     def test_deletion_rejects_active_and_referenced_records(self):
         concept = self.concept()
-        with patch.dict(os.environ, {"ORACLE_SETUP_TOKEN": "test-admin"}):
-            async def delete():
-                return await support.asgi_call("DELETE", f"/api/v1/concepts/{concept.id}", headers={"X-Oracle-Setup-Token": "test-admin"})
-            self.assertEqual(asyncio.run(delete())[0], 409)
-            self.api("PATCH", f"/concepts/{concept.id}", {"archived": True})
-            self.assertEqual(asyncio.run(delete())[0], 409)
+        self.api("DELETE", f"/concepts/{concept.id}", expected=409)
+        self.api("PATCH", f"/concepts/{concept.id}", {"archived": True})
+        self.api("DELETE", f"/concepts/{concept.id}", expected=409)
         self.assertEqual(len(self.rows(Concept)), 1)
 
-    def test_unreferenced_resource_cleanup_requires_archive_and_admin(self):
+    def test_unreferenced_resource_cleanup_requires_archive(self):
         resource = self.api("POST", "/resources", {"kind": "site", "uri": "https://example.com/unused"}, 201)
-        self.api("DELETE", f"/resources/{resource['id']}", expected=403)
+        self.api("DELETE", f"/resources/{resource['id']}", expected=409)
         self.api("PATCH", f"/resources/{resource['id']}", {"archived": True})
-        with patch.dict(os.environ, {"ORACLE_SETUP_TOKEN": "test-admin"}):
-            status, result = asyncio.run(support.asgi_call("DELETE", f"/api/v1/resources/{resource['id']}", headers={"X-Oracle-Setup-Token": "test-admin"}))
-            self.assertEqual(status, 204)
+        self.api("DELETE", f"/resources/{resource['id']}", expected=204)
         self.api("GET", f"/resources/{resource['id']}", expected=404)
+
+    def test_local_export_and_import_preview_accept_no_credentials(self):
+        self.concept()
+        document = self.api("GET", "/bank/export")
+        result = self.api("POST", "/bank/import", {
+            "request_id": str(uuid4()), "document": document, "preview": True})
+        self.assertTrue(result["valid"])
+        self.assertFalse(result["writes"])
+        self.assertEqual(len(self.rows(Concept)), 1)
 
     def test_cancelled_migration_keeps_active_profile_and_cancels_target_work(self):
         self.concept()

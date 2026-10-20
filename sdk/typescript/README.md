@@ -154,7 +154,6 @@ All URIs are relative to *http://127.0.0.1:8000*
 - [EmbeddingEndpoint](docs/EmbeddingEndpoint.md)
 - [Endpoint](docs/Endpoint.md)
 - [ErrorResponse](docs/ErrorResponse.md)
-- [HTTPErrorResponse](docs/HTTPErrorResponse.md)
 - [HealthResponse](docs/HealthResponse.md)
 - [ImportRead](docs/ImportRead.md)
 - [ImportRequest](docs/ImportRequest.md)
@@ -220,15 +219,8 @@ All URIs are relative to *http://127.0.0.1:8000*
 
 ### Authorization
 
+Endpoints do not require authorization.
 
-Authentication schemes defined for the API:
-<a id="SetupToken"></a>
-#### SetupToken
-
-
-- **Type**: API key
-- **API key parameter name**: `X-Oracle-Setup-Token`
-- **Location**: HTTP header
 
 ## About
 

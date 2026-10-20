@@ -31,9 +31,10 @@ authorization, public hosting and device sync are not implemented.
   embedding jobs where the target differs from the active profile. Existing vectors
   are retained; there is no automatic vector cleanup or rollback deletion.
 
-Setup writes, explicit probes, migration decisions, portability and permanent
-deletion require `X-Oracle-Setup-Token` matching `ORACLE_SETUP_TOKEN`. No token means
-those operations are disabled. Changing an existing database is an offline operation:
+The current local API requires no client authentication, including setup writes,
+explicit probes, migration decisions, portability and permanent deletion. LLM
+provider keys remain in server application settings. Archive and reference guards
+still apply to deletion. Changing an existing database is an offline operation:
 stop API and worker and run the setup CLI, then restart both. The CLI does not
 provision an arbitrary server; start the bundled Compose database or provide an
 existing PostgreSQL+pgvector connection first.
@@ -142,3 +143,11 @@ See [generation tooling](../tools/codegen/README.md) for regeneration, target
 selection, SDK smoke checks, and CI drift checks. Keep handwritten service
 adapters outside `sdk/`. The [audit](../contracts/AUDIT.md) records typed response,
 error, authentication, and generator compatibility decisions.
+
+CLI provider updates preserve omitted settings. Explicit `chat: null` or
+`embeddings: null` disables that file-configured capability; nonempty environment
+values still take precedence. The CLI never reads existing provider secrets back.
+
+Question-based clarification, lessons, examples and textual diagrams may use an
+empty concept scope with a nonempty question. Gap suggestions and factual checks
+still require recorded concepts. Generated answers remain learning artifacts.

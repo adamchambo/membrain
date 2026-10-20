@@ -102,7 +102,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -177,7 +176,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -252,7 +250,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -311,7 +308,6 @@ class SetupApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(
@@ -386,7 +382,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -457,7 +452,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -528,7 +522,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -654,7 +647,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReadinessRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -721,7 +713,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReadinessRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -788,7 +779,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ReadinessRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -915,7 +905,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SettingsRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -986,7 +975,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SettingsRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1057,7 +1045,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SettingsRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1126,7 +1113,6 @@ class SetupApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(
@@ -1197,7 +1183,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SettingsRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1264,7 +1249,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SettingsRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1331,7 +1315,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SettingsRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1458,7 +1441,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1529,7 +1511,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1600,7 +1581,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "MigrationRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1669,7 +1649,6 @@ class SetupApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(
@@ -1744,7 +1723,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Dict[str, ProbeRead]",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1815,7 +1793,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Dict[str, ProbeRead]",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1886,7 +1863,6 @@ class SetupApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "Dict[str, ProbeRead]",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1955,7 +1931,6 @@ class SetupApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(

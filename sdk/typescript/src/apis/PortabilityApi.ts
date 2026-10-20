@@ -24,11 +24,6 @@ import {
     ErrorResponseToJSON,
 } from '../models/ErrorResponse.js';
 import {
-    type HTTPErrorResponse,
-    HTTPErrorResponseFromJSON,
-    HTTPErrorResponseToJSON,
-} from '../models/HTTPErrorResponse.js';
-import {
     type ImportRead,
     ImportReadFromJSON,
     ImportReadToJSON,
@@ -63,10 +58,6 @@ export class PortabilityApi extends runtime.BaseAPI {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-Oracle-Setup-Token"] = await this.configuration.apiKey("X-Oracle-Setup-Token"); // SetupToken authentication
-        }
 
 
         let urlPath = `/api/v1/bank/export`;
@@ -113,10 +104,6 @@ export class PortabilityApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
-
-        if (this.configuration && this.configuration.apiKey) {
-            headerParameters["X-Oracle-Setup-Token"] = await this.configuration.apiKey("X-Oracle-Setup-Token"); // SetupToken authentication
-        }
 
 
         let urlPath = `/api/v1/bank/import`;

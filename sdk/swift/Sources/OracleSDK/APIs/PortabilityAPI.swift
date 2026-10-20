@@ -25,9 +25,6 @@ open class PortabilityAPI {
     /**
      Export
      - GET /api/v1/bank/export
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - returns: RequestBuilder<BankDocument> 
      */
     open func exportWithRequestBuilder() -> RequestBuilder<BankDocument> {
@@ -45,7 +42,7 @@ open class PortabilityAPI {
 
         let localVariableRequestBuilder: RequestBuilder<BankDocument>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "GET", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -61,9 +58,6 @@ open class PortabilityAPI {
     /**
      Import Data
      - POST /api/v1/bank/import
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - parameter importRequest: (body)  
      - returns: RequestBuilder<ImportRead> 
      */
@@ -82,6 +76,6 @@ open class PortabilityAPI {
 
         let localVariableRequestBuilder: RequestBuilder<ImportRead>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 }

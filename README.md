@@ -28,8 +28,9 @@ setup wizard. It saves private settings in ignored `.local/config.json`; nonempt
 environment values take precedence. Compose shares a configuration volume between
 the API and worker. `/health/ready` reports database migrations, worker heartbeat,
 and work counts; explicit model probes are available through setup administration.
-Set `ORACLE_SETUP_TOKEN` for configuration writes, profile migrations, export/import,
-and permanent deletion, then send it as `X-Oracle-Setup-Token`.
+The current local API requires no client authentication. Compose publishes it on
+`127.0.0.1:8000`. LLM provider keys stay in the server application settings;
+clients do not need provider credentials for normal API calls.
 
 Sources currently support uploaded UTF-8 TXT, Markdown, and HTML up to 2 MiB.
 URL bookmarks do not fetch content automatically. Generated teaching content and
@@ -59,3 +60,11 @@ See [generation and verification](tools/codegen/README.md) and the
 .venv/bin/python tools/codegen/generate.py
 .venv/bin/python tools/codegen/generate.py check
 ```
+
+## Interactive CLI
+
+Install the local client and generated SDK with
+`.venv/bin/python -m pip install -e sdk/python -e clients/cli`, then run
+`.venv/bin/oracle`. Run `.venv/bin/oracle setup` for configuration, or
+`.venv/bin/oracle --stub` for an offline navigation demo.
+See [CLI flows, settings and checks](clients/cli/README.md).

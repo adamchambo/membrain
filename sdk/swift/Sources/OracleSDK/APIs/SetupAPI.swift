@@ -35,9 +35,6 @@ open class SetupAPI {
     /**
      Decide Migration
      - POST /api/v1/embedding-migrations/{migration_id}/{action}
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - parameter migrationId: (path)  
      - parameter action: (path)  
      - returns: RequestBuilder<MigrationRead> 
@@ -63,7 +60,7 @@ open class SetupAPI {
 
         let localVariableRequestBuilder: RequestBuilder<MigrationRead>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -148,9 +145,6 @@ open class SetupAPI {
     /**
      Save Setup
      - PUT /api/v1/setup
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - parameter setupConfiguration: (body)  
      - returns: RequestBuilder<SettingsRead> 
      */
@@ -169,7 +163,7 @@ open class SetupAPI {
 
         let localVariableRequestBuilder: RequestBuilder<SettingsRead>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "PUT", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -217,9 +211,6 @@ open class SetupAPI {
     /**
      Start Migration
      - POST /api/v1/embedding-migrations
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - parameter migrationRequest: (body)  
      - returns: RequestBuilder<MigrationRead> 
      */
@@ -238,7 +229,7 @@ open class SetupAPI {
 
         let localVariableRequestBuilder: RequestBuilder<MigrationRead>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 
     /**
@@ -254,9 +245,6 @@ open class SetupAPI {
     /**
      Validate Setup
      - POST /api/v1/setup/validate
-     - API Key:
-       - type: apiKey X-Oracle-Setup-Token (HEADER)
-       - name: SetupToken
      - parameter capabilityCheck: (body)  
      - returns: RequestBuilder<[String: ProbeRead]> 
      */
@@ -275,6 +263,6 @@ open class SetupAPI {
 
         let localVariableRequestBuilder: RequestBuilder<[String: ProbeRead]>.Type = apiConfiguration.requestBuilderFactory.getBuilder()
 
-        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: true, apiConfiguration: apiConfiguration)
+        return localVariableRequestBuilder.init(method: "POST", URLString: (localVariableUrlComponents?.string ?? localVariableURLString), parameters: localVariableParameters, headers: localVariableHeaderParameters, requiresAuthentication: false, apiConfiguration: apiConfiguration)
     }
 }

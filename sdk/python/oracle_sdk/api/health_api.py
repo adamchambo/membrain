@@ -85,7 +85,6 @@ class HealthApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "HealthResponse",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -152,7 +151,6 @@ class HealthApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "HealthResponse",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -219,7 +217,6 @@ class HealthApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "HealthResponse",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",

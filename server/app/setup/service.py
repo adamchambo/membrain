@@ -60,11 +60,13 @@ def save_settings_locked(data: SetupConfiguration, *, allow_database_change: boo
             raise NotConfigured("Setup requires a valid PostgreSQL connection URL") from exc
         settings["DATABASE_URL"] = data.database_url.get_secret_value()
     for name, endpoint in (("CHAT", data.chat), ("EMBEDDING", data.embeddings)):
+        if ("chat" if name == "CHAT" else "embeddings") not in data.model_fields_set:
+            continue
         url_key = "ORACLE_CHAT_COMPLETIONS_URL" if name == "CHAT" else "ORACLE_EMBEDDINGS_URL" if name == "EMBEDDING" else "ORACLE_TRANSCRIPTION_URL"
         settings[url_key] = endpoint.url if endpoint else ""
         settings[f"ORACLE_{name}_MODEL"] = endpoint.model if endpoint else ""
         settings[f"ORACLE_{name}_API_KEY"] = endpoint.api_key.get_secret_value() if endpoint and endpoint.api_key else ""
-    if data.embeddings:
+    if "embeddings" in data.model_fields_set and data.embeddings:
         p = data.embeddings.profile
         if p.model != data.embeddings.model:
             raise NotConfigured("Embedding endpoint model and profile model must match")
@@ -72,11 +74,11 @@ def save_settings_locked(data: SetupConfiguration, *, allow_database_change: boo
                          "ORACLE_EMBEDDING_DOCUMENT_PREFIX": p.document_prefix, "ORACLE_EMBEDDING_QUERY_PREFIX": p.query_prefix})
         value.setdefault("embedding_connections", {})[p.key] = {"url": data.embeddings.url,
             "api_key": data.embeddings.api_key.get_secret_value() if data.embeddings.api_key else None}
-    else:
-        # Full replacement disables file-configured embedding inference too;
-        # stale profile connections must not silently keep sending explanations.
+    elif "embeddings" in data.model_fields_set:
+        # Explicit null disables embedding inference; omitted fields stay unchanged.
         value.pop("embedding_connections", None)
-    settings["ORACLE_DATABASE_MODE"] = data.database_mode
+    if "database_mode" in data.model_fields_set:
+        settings["ORACLE_DATABASE_MODE"] = data.database_mode
     write_config(value)
     return {**safe_settings(), "environment_overrides": sorted(key for key, value in settings.items() if os.getenv(key) and os.getenv(key) != value)}
 

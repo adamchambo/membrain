@@ -114,7 +114,6 @@ HTTPSignatureAuthSetting = TypedDict(
 AuthSettings = TypedDict(
     "AuthSettings",
     {
-        "SetupToken": APIKeyAuthSetting,
     },
     total=False,
 )
@@ -181,26 +180,6 @@ class Configuration:
     :param datetime_format: Datetime format string for serialization.
     :param date_format: Date format string for serialization.
 
-    :Example:
-
-    API Key Authentication Example.
-    Given the following security scheme in the OpenAPI specification:
-      components:
-        securitySchemes:
-          cookieAuth:         # name for the security scheme
-            type: apiKey
-            in: cookie
-            name: JSESSIONID  # cookie name
-
-    You can programmatically set the cookie:
-
-conf = oracle_sdk.Configuration(
-    api_key={'cookieAuth': 'abc123'}
-    api_key_prefix={'cookieAuth': 'JSESSIONID'}
-)
-
-    The following cookie will be added to the HTTP request:
-       Cookie: JSESSIONID abc123
     """
 
     _default: ClassVar[Optional[Self]] = None
@@ -563,15 +542,6 @@ conf = oracle_sdk.Configuration(
         :return: The Auth Settings information dict.
         """
         auth: AuthSettings = {}
-        if 'SetupToken' in self.api_key:
-            auth['SetupToken'] = {
-                'type': 'api_key',
-                'in': 'header',
-                'key': 'X-Oracle-Setup-Token',
-                'value': self.get_api_key_with_prefix(
-                    'SetupToken',
-                ),
-            }
         return auth
 
     def to_debug_report(self) -> str:

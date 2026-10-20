@@ -89,7 +89,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -160,7 +159,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -231,7 +229,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -287,7 +284,6 @@ class PermanentDeletionApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(
@@ -362,7 +358,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -433,7 +428,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -504,7 +498,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -560,7 +553,6 @@ class PermanentDeletionApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(
@@ -635,7 +627,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -706,7 +697,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -777,7 +767,6 @@ class PermanentDeletionApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -833,7 +822,6 @@ class PermanentDeletionApi:
 
         # authentication setting
         _auth_settings: List[str] = [
-            'SetupToken'
         ]
 
         return self.api_client.param_serialize(

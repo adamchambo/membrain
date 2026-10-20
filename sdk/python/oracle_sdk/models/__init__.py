@@ -48,7 +48,6 @@ from oracle_sdk.models.detail import Detail
 from oracle_sdk.models.embedding_endpoint import EmbeddingEndpoint
 from oracle_sdk.models.endpoint import Endpoint
 from oracle_sdk.models.error_response import ErrorResponse
-from oracle_sdk.models.http_error_response import HTTPErrorResponse
 from oracle_sdk.models.health_response import HealthResponse
 from oracle_sdk.models.import_read import ImportRead
 from oracle_sdk.models.import_request import ImportRequest

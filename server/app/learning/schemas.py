@@ -9,9 +9,16 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 class TaskCreate(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     kind: Literal["clarification", "suggestions", "fact_check", "lesson", "worked_example", "diagram"]
-    concept_ids: list[UUID] = Field(min_length=1, max_length=20)
+    concept_ids: list[UUID] = Field(default_factory=list, max_length=20, description="Recorded scope, or empty for an explicit new teaching/clarification question.")
     resource_ids: list[UUID] = Field(default_factory=list, max_length=10)
     question: str = Field(default="", max_length=4000)
+
+
+    @model_validator(mode="after")
+    def valid_scope(self):
+        if not self.concept_ids and (self.kind not in {"clarification", "lesson", "worked_example", "diagram"} or not self.question):
+            raise ValueError("Choose recorded concepts, or provide an explicit clarification/teaching question")
+        return self
 
 
 class Citation(BaseModel):

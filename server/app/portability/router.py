@@ -7,9 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.portability.service import export_bank, import_bank
-from app.setup.router import require_admin
 
-router = APIRouter(prefix="/api/v1/bank", tags=["portability"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api/v1/bank", tags=["portability"])
 Db = Annotated[Session, Depends(get_db)]
 
 

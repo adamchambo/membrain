@@ -193,7 +193,6 @@ Class | Method | HTTP request | Description
  - [EmbeddingEndpoint](docs/EmbeddingEndpoint.md)
  - [Endpoint](docs/Endpoint.md)
  - [ErrorResponse](docs/ErrorResponse.md)
- - [HTTPErrorResponse](docs/HTTPErrorResponse.md)
  - [HealthResponse](docs/HealthResponse.md)
  - [ImportRead](docs/ImportRead.md)
  - [ImportRequest](docs/ImportRequest.md)
@@ -261,14 +260,7 @@ Class | Method | HTTP request | Description
 <a id="documentation-for-authorization"></a>
 ## Documentation For Authorization
 
-
-Authentication schemes defined for the API:
-<a id="SetupToken"></a>
-### SetupToken
-
-- **Type**: API key
-- **API key parameter name**: X-Oracle-Setup-Token
-- **Location**: HTTP header
+Endpoints do not require authorization.
 
 
 ## Author

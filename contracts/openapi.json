@@ -1322,19 +1322,6 @@
         "title": "ErrorResponse",
         "type": "object"
       },
-      "HTTPErrorResponse": {
-        "properties": {
-          "detail": {
-            "title": "Detail",
-            "type": "string"
-          }
-        },
-        "required": [
-          "detail"
-        ],
-        "title": "HTTPErrorResponse",
-        "type": "object"
-      },
       "HealthResponse": {
         "properties": {
           "status": {
@@ -3648,12 +3635,12 @@
         "additionalProperties": false,
         "properties": {
           "concept_ids": {
+            "description": "Recorded scope, or empty for an explicit new teaching/clarification question.",
             "items": {
               "format": "uuid",
               "type": "string"
             },
             "maxItems": 20,
-            "minItems": 1,
             "title": "Concept Ids",
             "type": "array"
           },
@@ -3686,8 +3673,7 @@
           }
         },
         "required": [
-          "kind",
-          "concept_ids"
+          "kind"
         ],
         "title": "TaskCreate",
         "type": "object"
@@ -3897,13 +3883,6 @@
         "title": "WorkerRead",
         "type": "object"
       }
-    },
-    "securitySchemes": {
-      "SetupToken": {
-        "in": "header",
-        "name": "X-Oracle-Setup-Token",
-        "type": "apiKey"
-      }
     }
   },
   "info": {
@@ -3925,16 +3904,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -3977,11 +3946,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Export",
         "tags": [
           "portability"
@@ -4012,16 +3976,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -4063,11 +4017,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Import Data",
         "tags": [
           "portability"
@@ -4139,16 +4088,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -4217,16 +4156,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -4300,16 +4229,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -4376,16 +4295,6 @@
           "204": {
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -4427,11 +4336,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Delete Capture",
         "tags": [
           "permanent deletion"
@@ -4461,16 +4365,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -4555,16 +4449,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -4637,16 +4521,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -4773,16 +4647,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -4848,16 +4712,6 @@
         "responses": {
           "204": {
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -4929,16 +4783,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -5041,16 +4885,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -5117,16 +4951,6 @@
           "204": {
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -5168,11 +4992,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Delete Concept",
         "tags": [
           "permanent deletion"
@@ -5202,16 +5021,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -5294,16 +5103,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -5377,16 +5176,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -5472,16 +5261,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -5584,16 +5363,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -5675,16 +5444,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -5761,16 +5520,6 @@
           "204": {
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -5846,16 +5595,6 @@
         "responses": {
           "204": {
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -5958,16 +5697,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -6048,16 +5777,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -6149,16 +5868,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -6261,16 +5970,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -6342,16 +6041,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -6393,11 +6082,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Start Migration",
         "tags": [
           "setup"
@@ -6429,16 +6113,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -6526,16 +6200,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -6577,11 +6241,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Decide Migration",
         "tags": [
           "setup"
@@ -6613,16 +6272,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -6697,16 +6346,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -6779,16 +6418,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -6874,16 +6503,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -6954,16 +6573,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -7037,16 +6646,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -7138,16 +6737,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -7263,16 +6852,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -7355,16 +6934,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -7467,16 +7036,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -7546,16 +7105,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -7622,16 +7171,6 @@
           "204": {
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -7673,11 +7212,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Delete Resource",
         "tags": [
           "permanent deletion"
@@ -7707,16 +7241,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -7798,16 +7322,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -7912,16 +7426,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -8006,16 +7510,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -8088,16 +7582,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -8174,16 +7658,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -8252,16 +7726,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -8335,16 +7799,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -8429,16 +7883,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -8504,16 +7948,6 @@
         "responses": {
           "204": {
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -8587,16 +8021,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -8698,16 +8122,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -8768,16 +8182,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -8848,16 +8252,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -8899,11 +8293,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Save Setup",
         "tags": [
           "setup"
@@ -8938,16 +8327,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -8989,11 +8368,6 @@
             "description": "Required provider or configuration unavailable."
           }
         },
-        "security": [
-          {
-            "SetupToken": []
-          }
-        ],
         "summary": "Validate Setup",
         "tags": [
           "setup"
@@ -9027,16 +8401,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -9106,16 +8470,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -9200,16 +8554,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -9282,16 +8626,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {
@@ -9401,16 +8735,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -9472,16 +8796,6 @@
             },
             "description": "Successful Response"
           },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
-          },
           "404": {
             "content": {
               "application/json": {
@@ -9542,16 +8856,6 @@
               }
             },
             "description": "Successful Response"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPErrorResponse"
-                }
-              }
-            },
-            "description": "Setup administration token missing or invalid."
           },
           "404": {
             "content": {

@@ -94,7 +94,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "SessionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -165,7 +164,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "SessionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -236,7 +234,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "SessionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -379,7 +376,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -450,7 +446,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -521,7 +516,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -651,7 +645,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "AttemptRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -722,7 +715,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "AttemptRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -793,7 +785,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "AttemptRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -923,7 +914,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "QuestionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -994,7 +984,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "QuestionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1065,7 +1054,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "QuestionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1199,7 +1187,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "AttemptRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1274,7 +1261,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "AttemptRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1349,7 +1335,6 @@ class ReviewApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "AttemptRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",

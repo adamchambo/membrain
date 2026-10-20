@@ -16,9 +16,7 @@ for raw in ({}, {"title": None}, {"note": None}, {"title": "Updated"}):
 for raw in ({"detail": "Invalid profile"}, {"detail": [{"loc": ["body", 0], "msg": "Invalid", "type": "value_error"}]}):
     assert ValidationErrorResponse.from_dict(raw).to_dict() == raw
 with ApiClient(Configuration(host="http://127.0.0.1:8000")) as client:
-    configuration = client.configuration
-    configuration.api_key["SetupToken"] = "synthetic-token"
-    assert configuration.auth_settings()["SetupToken"]["key"] == "X-Oracle-Setup-Token"
+    assert client.configuration.auth_settings() == {}
     receipt = {"capture_id": "00000000-0000-0000-0000-000000000001",
                "conversation_id": "00000000-0000-0000-0000-000000000002",
                "processing_job_id": "00000000-0000-0000-0000-000000000003",

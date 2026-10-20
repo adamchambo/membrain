@@ -13,9 +13,8 @@ from app.errors import Conflict, NotFound
 from app.knowledge.models import Concept, Resource
 from app.learning.models import LearningArtifact
 from app.models import Base
-from app.setup.router import require_admin
 
-router = APIRouter(prefix="/api/v1", tags=["permanent deletion"], dependencies=[Depends(require_admin)])
+router = APIRouter(prefix="/api/v1", tags=["permanent deletion"])
 Db = Annotated[Session, Depends(get_db)]
 
 

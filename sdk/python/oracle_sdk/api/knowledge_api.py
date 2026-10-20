@@ -109,7 +109,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "RelationshipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -184,7 +183,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "RelationshipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -259,7 +257,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "RelationshipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -409,7 +406,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "RevisionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -484,7 +480,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "RevisionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -559,7 +554,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "RevisionRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -709,7 +703,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -784,7 +777,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -859,7 +851,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1005,7 +996,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "ResourceRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1076,7 +1066,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "ResourceRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1147,7 +1136,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '201': "ResourceRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1294,7 +1282,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1369,7 +1356,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1444,7 +1430,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '204': None,
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1577,7 +1562,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1648,7 +1632,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1719,7 +1702,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1849,7 +1831,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourceDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1920,7 +1901,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourceDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1991,7 +1971,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourceDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2129,7 +2108,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2208,7 +2186,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2287,7 +2264,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2437,7 +2413,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RelationshipPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2516,7 +2491,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RelationshipPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2595,7 +2569,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RelationshipPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2743,7 +2716,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RevisionPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2822,7 +2794,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RevisionPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -2901,7 +2872,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RevisionPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -3042,7 +3012,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "WorkRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -3114,7 +3083,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "WorkRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -3186,7 +3154,6 @@ class KnowledgeApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '202': "WorkRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",

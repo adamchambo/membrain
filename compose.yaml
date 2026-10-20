@@ -28,7 +28,6 @@ services:
       ORACLE_EMBEDDING_QUERY_PREFIX: "${ORACLE_EMBEDDING_QUERY_PREFIX-search_query: }"
       ORACLE_EMBEDDING_API_KEY: "${ORACLE_EMBEDDING_API_KEY:-}"
       ORACLE_CONFIG_FILE: /var/lib/oracle/config.json
-      ORACLE_SETUP_TOKEN: "${ORACLE_SETUP_TOKEN:-}"
     volumes:
       - oracle_config:/var/lib/oracle
     depends_on:

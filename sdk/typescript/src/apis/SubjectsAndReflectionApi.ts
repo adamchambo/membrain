@@ -19,11 +19,6 @@ import {
     ErrorResponseToJSON,
 } from '../models/ErrorResponse.js';
 import {
-    type HTTPErrorResponse,
-    HTTPErrorResponseFromJSON,
-    HTTPErrorResponseToJSON,
-} from '../models/HTTPErrorResponse.js';
-import {
     type MembershipRead,
     MembershipReadFromJSON,
     MembershipReadToJSON,

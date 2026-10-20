@@ -99,7 +99,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ActivityPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -174,7 +173,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ActivityPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -249,7 +247,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ActivityPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -390,7 +387,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RelatedResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -465,7 +461,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RelatedResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -540,7 +535,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "RelatedResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -683,7 +677,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SearchResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -762,7 +755,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SearchResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -841,7 +833,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "SearchResult",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -991,7 +982,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ActivityPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1070,7 +1060,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ActivityPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1149,7 +1138,6 @@ class DiscoveryApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ActivityPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",

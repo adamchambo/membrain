@@ -104,7 +104,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ArchivedRelationshipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -179,7 +178,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ArchivedRelationshipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -254,7 +252,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ArchivedRelationshipRead",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -404,7 +401,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConversationPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -479,7 +475,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConversationPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -554,7 +549,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConversationPage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -699,7 +693,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourcePage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -778,7 +771,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourcePage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -857,7 +849,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourcePage",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1003,7 +994,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1078,7 +1068,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1153,7 +1142,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ConceptDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1303,7 +1291,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourceDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1378,7 +1365,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourceDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
@@ -1453,7 +1439,6 @@ class BankManagementApi:
 
         _response_types_map: Dict[str, Optional[str]] = {
             '200': "ResourceDetail",
-            '403': "HTTPErrorResponse",
             '404': "ErrorResponse",
             '409': "ErrorResponse",
             '422': "ValidationErrorResponse",
