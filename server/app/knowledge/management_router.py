@@ -14,6 +14,7 @@ from app.database import get_db
 from app.errors import NotFound
 from app.knowledge.models import Concept, ConceptRelationship, Resource
 from app.knowledge.schemas import ConceptDetail, ResourceDetail, ResourceRead
+from app.knowledge.management_schemas import ArchivedRelationshipRead, ConversationPage, ResourcePage
 from app.knowledge.service import get_concept, get_resource
 from app.pagination import before_cursor, encode_cursor
 
@@ -28,10 +29,18 @@ class ConceptPatch(BaseModel):
     archived: bool | None = None
 
 
+def nullable_patch(schema: dict) -> None:
+    """Keep null encoding metadata on the value branch for OpenAPI generators."""
+    schema["x-null-encodable"] = True
+    for branch in schema.get("anyOf", []):
+        if branch.get("type") != "null":
+            branch["x-null-encodable"] = True
+
+
 class ResourcePatch(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    title: str | None = Field(default=None, max_length=500)
-    note: str | None = Field(default=None, max_length=20000)
+    title: str | None = Field(default=None, max_length=500, json_schema_extra=nullable_patch)
+    note: str | None = Field(default=None, max_length=20000, json_schema_extra=nullable_patch)
     archived: bool | None = None
 
 
@@ -40,7 +49,7 @@ class ArchivePatch(BaseModel):
     archived: bool
 
 
-@router.patch("/relationships/{relationship_id}")
+@router.patch("/relationships/{relationship_id}", response_model=ArchivedRelationshipRead)
 def archive_relationship(relationship_id: UUID, data: ArchivePatch, db: Db):
     with db.begin():
         item = db.scalar(select(ConceptRelationship).where(ConceptRelationship.id == relationship_id).with_for_update())
@@ -89,13 +98,13 @@ def patch_resource(resource_id: UUID, data: ResourcePatch, db: Db):
         return get_resource(db, resource_id)
 
 
-@router.get("/resources")
+@router.get("/resources", response_model=ResourcePage)
 def list_resources(db: Db, cursor: str | None = None, limit: Limit = 25, include_archived: bool = False):
     rows, following = page(db, Resource, cursor, limit, include_archived)
     return {"items": [ResourceRead.model_validate(row) for row in rows], "next_cursor": following}
 
 
-@router.get("/conversations")
+@router.get("/conversations", response_model=ConversationPage)
 def list_conversations(db: Db, cursor: str | None = None, limit: Limit = 25):
     rows, following = page(db, Conversation, cursor, limit)
     return {"items": [{"id": row.id, "title": row.title, "created_at": row.created_at} for row in rows], "next_cursor": following}

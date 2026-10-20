@@ -46,7 +46,7 @@ class ProposalRead(BaseModel):
     id: UUID
     capture_id: UUID
     kind: ProposalKind
-    payload: dict[str, Any]
+    payload: dict[str, Any] = Field(description="Proposal-kind-specific payload; inspect kind before interpreting keys.")
     model_key: str
     prompt_version: str | None = None
     application_mode: Literal["automatic", "user"] | None = None

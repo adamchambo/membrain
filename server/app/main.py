@@ -16,7 +16,11 @@ from app.discovery.map_router import router as map_router
 from app.portability.router import router as portability_router
 from app.knowledge.deletion import router as deletion_router
 
-app = FastAPI(title="Oracle API")
+from app.http_contract import ERROR_RESPONSES, operation_id
+
+app = FastAPI(title="Oracle API", version="0.1.0",
+              generate_unique_id_function=operation_id, responses=ERROR_RESPONSES,
+              servers=[{"url": "http://127.0.0.1:8000", "description": "Local default; override in client configuration."}])
 app.add_exception_handler(AppError, app_error_handler)
 app.include_router(health_router)
 app.include_router(captures_router)

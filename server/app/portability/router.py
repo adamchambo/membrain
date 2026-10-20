@@ -2,7 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -16,13 +16,13 @@ Db = Annotated[Session, Depends(get_db)]
 class ImportRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     request_id: UUID
-    document: dict
+    document: dict = Field(description="Versioned portable bank document, validated by the import service.")
     preview: bool = True
 
 
 class BankDocument(BaseModel):
     format: str
-    tables: dict[str, list[dict]]
+    tables: dict[str, list[dict]] = Field(description="Versioned storage records keyed by table name; intentionally extensible JSON rows.")
     excluded: list[str]
 
 

@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
@@ -23,7 +23,7 @@ class WorkRead(BaseModel):
     last_error: str | None
     profile_key: str | None
     available_at: datetime
-    result: dict | None = None
+    result: dict | None = Field(default=None, description="Job-kind-specific result envelope; inspect kind before interpreting keys.")
 
 
 def enqueue_capture(db: Session, capture_id: UUID) -> UUID:

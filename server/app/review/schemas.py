@@ -54,5 +54,5 @@ class AttemptRead(BaseModel):
     review_session_id: UUID
     question_id: UUID | None
     response: str
-    feedback: dict[str, Any] | None
+    feedback: dict[str, Any] | None = Field(description="Recall feedback with correctness=not_verified; legacy feedback envelopes are retained.")
     feedback_job_id: UUID | None

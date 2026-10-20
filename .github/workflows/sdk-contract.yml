@@ -1,0 +1,33 @@
+name: API contract and generated SDKs
+on:
+  pull_request:
+    paths: ['server/**', 'contracts/**', 'sdk/**', 'tools/codegen/**', '.github/workflows/sdk-contract.yml']
+  push:
+    paths: ['server/**', 'contracts/**', 'sdk/**', 'tools/codegen/**', '.github/workflows/sdk-contract.yml']
+permissions:
+  contents: read
+jobs:
+  contract-python-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install -e server -r tools/codegen/requirements.txt ./sdk/python
+      - run: python tools/codegen/generate.py check
+      - run: python -m unittest discover -s tests -p test_contract.py -v
+        working-directory: server
+      - run: python tools/codegen/smoke_python.py
+      - run: npm ci --ignore-scripts --prefix tools/codegen
+      - run: tools/codegen/node_modules/.bin/tsc -p sdk/typescript/tsconfig.json
+      - run: tools/codegen/node_modules/.bin/tsc -p sdk/typescript/tsconfig.esm.json
+      - run: node tools/codegen/smoke_typescript.cjs
+  swift:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: swift run --package-path tools/codegen/swift-smoke

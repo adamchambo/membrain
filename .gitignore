@@ -13,3 +13,9 @@ dist/
 
 # Local PostgreSQL cluster and runtime files
 /.local/
+
+# SDK and code-generation dependency/build artifacts
+node_modules/
+.build/
+.swiftpm/
+build/

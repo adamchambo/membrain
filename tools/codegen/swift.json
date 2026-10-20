@@ -1,0 +1,9 @@
+{
+  "projectName": "OracleSDK",
+  "library": "urlsession",
+  "responseAs": "AsyncAwait",
+  "apiStaticMethod": false,
+  "hideGenerationTimestamp": true,
+  "disallowAdditionalPropertiesIfNotPresent": false,
+  "hashableModels": false
+}

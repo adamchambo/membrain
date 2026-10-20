@@ -2,7 +2,8 @@ import secrets
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi.security import APIKeyHeader
 from sqlalchemy.orm import Session
 
 from app.config import setting, remember_embedding_connection
@@ -14,7 +15,10 @@ router = APIRouter(tags=["setup"])
 Db = Annotated[Session, Depends(get_db)]
 
 
-def require_admin(x_oracle_setup_token: Annotated[str | None, Header()] = None):
+setup_token = APIKeyHeader(name="X-Oracle-Setup-Token", scheme_name="SetupToken", auto_error=False)
+
+
+def require_admin(x_oracle_setup_token: Annotated[str | None, Security(setup_token)] = None):
     expected = setting("ORACLE_SETUP_TOKEN")
     if not expected or not x_oracle_setup_token or not secrets.compare_digest(expected, x_oracle_setup_token):
         raise HTTPException(403, "Set ORACLE_SETUP_TOKEN and supply X-Oracle-Setup-Token for setup administration")

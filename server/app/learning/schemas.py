@@ -77,7 +77,7 @@ class SuggestionRead(BaseModel):
 class ArtifactRead(BaseModel):
     id: UUID
     kind: str
-    inputs: dict
+    inputs: dict = Field(description="Original task request and optional retained inference context; versioned provenance data.")
     output: LearningOutput | None
     model_key: str | None
     prompt_version: str | None

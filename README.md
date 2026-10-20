@@ -48,3 +48,14 @@ python3 clients/cli/oracle.py chat
 ```
 
 Say what you are learning, then add your understanding. `/show` inspects the latest capture, `/undo` retracts its latest derived learning, and `/new` starts a new conversation. The native quick-window interface is still planned. See [CLI usage](clients/cli/README.md) and [isolated database tests](server/tests/README.md).
+
+## Generated client SDKs
+
+Python, Swift, and TypeScript clients share the exported OpenAPI contract.
+See [generation and verification](tools/codegen/README.md) and the
+[contract audit](contracts/AUDIT.md). Regenerate from the repository root:
+
+```sh
+.venv/bin/python tools/codegen/generate.py
+.venv/bin/python tools/codegen/generate.py check
+```

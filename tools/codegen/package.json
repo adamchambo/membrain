@@ -1,0 +1,6 @@
+{
+  "name": "oracle-codegen-checks",
+  "private": true,
+  "version": "0.1.0",
+  "devDependencies": {"typescript": "5.9.3"}
+}

@@ -16,6 +16,7 @@ from app.knowledge.service import latest_revision
 from app.learning.scopes import resolve_subject
 from app.learning.models import LearningSuggestion
 from app.setup.profiles import active_profile
+from app.discovery.map_schemas import ConceptMapRead
 
 router = APIRouter(prefix="/api/v1", tags=["concept map"])
 Db = Annotated[Session, Depends(get_db)]
@@ -29,7 +30,7 @@ class MapRequest(BaseModel):
     minimum_similarity: float = Field(default=0.7, ge=-1, le=1)
 
 
-@router.post("/concept-map")
+@router.post("/concept-map", response_model=ConceptMapRead, response_model_exclude_unset=True)
 def concept_map(data: MapRequest, db: Db):
     if bool(data.concept_ids) == bool(data.subject_id):
         raise Conflict("Choose concept_ids or subject_id")

@@ -1,0 +1,9 @@
+{
+  "npmName": "@oracle/sdk",
+  "npmVersion": "0.1.0",
+  "supportsES6": true,
+  "typescriptThreePlus": true,
+  "hideGenerationTimestamp": true,
+  "disallowAdditionalPropertiesIfNotPresent": false,
+  "importFileExtension": ".js"
+}

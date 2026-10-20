@@ -1,0 +1,8 @@
+{
+  "packageName": "oracle_sdk",
+  "projectName": "oracle-sdk",
+  "packageVersion": "0.1.0",
+  "library": "urllib3",
+  "hideGenerationTimestamp": true,
+  "disallowAdditionalPropertiesIfNotPresent": false
+}

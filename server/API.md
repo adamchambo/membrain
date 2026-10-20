@@ -134,3 +134,11 @@ audio destination before allowing the transport implementation. No audio-upload 
 transcription worker, provider selection, or audio deletion was installed. Existing
 text and voice-transcript capture inputs remain available.
 Hosted auth, billing, email and sync remain optional future work.
+
+## Generated SDK contract
+
+The checked-in `contracts/openapi.json` is exported from these FastAPI routes.
+See [generation tooling](../tools/codegen/README.md) for regeneration, target
+selection, SDK smoke checks, and CI drift checks. Keep handwritten service
+adapters outside `sdk/`. The [audit](../contracts/AUDIT.md) records typed response,
+error, authentication, and generator compatibility decisions.
