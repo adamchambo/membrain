@@ -1,3 +1,36 @@
+# Interactive navigation prototype
+
+Run from `clients/cli`:
+
+```sh
+python3 -m oracle_cli
+```
+
+This is **local stub mode**. No server or AI is contacted, no files are saved,
+and entered text exists only in memory until exit. Fixed demo candidates are
+navigation examples, not assessments of your knowledge. The wizard is still a stub.
+
+Choose numbered menu entries. `0` goes back in menus and exits at the main menu.
+`/back`, `/menu`, and `/quit` work at any prompt. During capture, `/show` and `/undo`
+call placeholder handlers. Review and gap diagnostics accept an answer before
+showing placeholder feedback. There is no background-job polling yet.
+
+`session.py` owns the loop and navigation stack; `menus.py` defines screens;
+`stub_api.py` records named calls in memory. Input and output are injected so the
+flow can be tested without an interactive terminal. Existing command and wizard
+stubs remain available for later extraction and API wiring.
+
+Run navigation tests from `clients/cli`:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_session.py'
+```
+
+The package defines an `oracle` console entry point for a later package install.
+No installation is required for the module command above.
+
+---
+
 # CLI client
 
 A small standard-library Python client that calls the FastAPI server. Start the API
