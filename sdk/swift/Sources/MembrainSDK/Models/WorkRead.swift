@@ -16,6 +16,7 @@ public struct WorkRead: Sendable, Codable {
         case profileMigration = "profile_migration"
         case resourceExtract = "resource_extract"
         case learning = "learning"
+        case turn = "turn"
     }
     public enum Status: String, Sendable, Codable, CaseIterable {
         case pending = "pending"

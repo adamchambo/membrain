@@ -172,7 +172,7 @@ class IngestionTests(unittest.TestCase):
         proposal = self.rows(AIProposal)[0]
         self.assertEqual(proposal.application_mode, "automatic")
         self.assertIsNone(proposal.reviewed_at)
-        self.assertEqual(proposal.prompt_version, "capture.v1")
+        self.assertEqual(proposal.prompt_version, "capture.v2")
         self.assertFalse(run_one(self.engine, job_id=UUID(receipt["processing_job_id"])))
         self.api("POST", "/captures/ingest", {"raw_text": "different", "request_id": request_id}, 409)
 

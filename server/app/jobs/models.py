@@ -21,12 +21,12 @@ class EmbeddingProfile(Base):
 class WorkItem(Base):
     __tablename__ = "work_items"
     __table_args__ = (
-        CheckConstraint("kind IN ('capture', 'embedding', 'review_feedback', 'profile_migration', 'resource_extract', 'learning')", name="work_kind_valid"),
+        CheckConstraint("kind IN ('capture', 'embedding', 'review_feedback', 'profile_migration', 'resource_extract', 'learning', 'turn')", name="work_kind_valid"),
         CheckConstraint("status IN ('pending', 'running', 'succeeded', 'failed', 'cancelled')", name="work_status_valid"),
         CheckConstraint("(kind = 'capture' AND capture_id IS NOT NULL AND revision_id IS NULL AND attempt_id IS NULL) OR "
                         "(kind = 'embedding' AND revision_id IS NOT NULL AND capture_id IS NULL AND attempt_id IS NULL) OR "
                         "(kind = 'review_feedback' AND attempt_id IS NOT NULL AND capture_id IS NULL AND revision_id IS NULL) OR "
-                        "(kind IN ('profile_migration', 'resource_extract', 'learning') AND capture_id IS NULL AND revision_id IS NULL AND attempt_id IS NULL)", name="work_target_valid"),
+                        "(kind IN ('profile_migration', 'resource_extract', 'learning', 'turn') AND capture_id IS NULL AND revision_id IS NULL AND attempt_id IS NULL)", name="work_target_valid"),
         Index("ix_work_items_schedule", "status", "available_at"),
     )
 

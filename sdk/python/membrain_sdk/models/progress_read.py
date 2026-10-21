@@ -17,21 +17,21 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, StrictStr
-from typing import Any, ClassVar, Dict, Optional
-from typing_extensions import Annotated
+from datetime import datetime
+from pydantic import BaseModel, ConfigDict, StrictStr
+from typing import Any, ClassVar, Dict, List
 from typing import Optional, Set
 from typing_extensions import Self
 from pydantic_core import to_jsonable_python
 
-class Endpoint(BaseModel):
+class ProgressRead(BaseModel):
     """
-    Endpoint
+    ProgressRead
     """ # noqa: E501
-    api_key: Optional[SecretStr] = None
-    model: Annotated[str, Field(min_length=1, strict=True, max_length=255)]
-    url: StrictStr
-    __properties: ClassVar[List[str]] = ["api_key", "model", "url"]
+    at: datetime
+    text: StrictStr
+    additional_properties: Dict[str, Any] = {}
+    __properties: ClassVar[List[str]] = ["at", "text"]
 
     model_config = ConfigDict(
         validate_by_name=True,
@@ -51,7 +51,7 @@ class Endpoint(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of Endpoint from a JSON string"""
+        """Create an instance of ProgressRead from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -63,8 +63,10 @@ class Endpoint(BaseModel):
         * `None` is only added to the output dict for nullable fields that
           were set at model initialization. Other fields with value `None`
           are ignored.
+        * Fields in `self.additional_properties` are added to the output dict.
         """
         excluded_fields: Set[str] = set([
+            "additional_properties",
         ])
 
         _dict = self.model_dump(
@@ -72,16 +74,16 @@ class Endpoint(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # set to None if api_key (nullable) is None
-        # and model_fields_set contains the field
-        if self.api_key is None and "api_key" in self.model_fields_set:
-            _dict['api_key'] = None
+        # puts key-value pairs in additional_properties in the top level
+        if self.additional_properties is not None:
+            for _key, _value in self.additional_properties.items():
+                _dict[_key] = _value
 
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of Endpoint from a dict"""
+        """Create an instance of ProgressRead from a dict"""
         if obj is None:
             return None
 
@@ -89,12 +91,16 @@ class Endpoint(BaseModel):
             return cls.model_validate(obj)
 
         _values = {
-            "api_key": obj.get("api_key"),
-            "model": obj.get("model"),
-            "url": obj.get("url")
+            "at": obj.get("at"),
+            "text": obj.get("text")
         }
         # Preserve absent versus explicit null in PATCH and other optional fields.
         _obj = cls.model_validate({key: value for key, value in _values.items() if key in obj})
+        # store additional fields in additional_properties
+        for _key in obj.keys():
+            if _key not in cls.__properties:
+                _obj.additional_properties[_key] = obj.get(_key)
+
         return _obj
 
 

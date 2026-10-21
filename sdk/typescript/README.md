@@ -68,6 +68,10 @@ All URIs are relative to *http://127.0.0.1:8000*
 *CapturesApi* | [**rejectProposal**](docs/CapturesApi.md#rejectproposal) | **POST** /api/v1/proposals/{proposal_id}/reject | Reject Proposal
 *CapturesApi* | [**undoCapture**](docs/CapturesApi.md#undocapture) | **POST** /api/v1/captures/{capture_id}/undo | Undo Capture
 *ConceptMapApi* | [**conceptMap**](docs/ConceptMapApi.md#conceptmap) | **POST** /api/v1/concept-map | Concept Map
+*ConversationApi* | [**getTurn**](docs/ConversationApi.md#getturn) | **GET** /api/v1/turns/{turn_id} | Get Turn
+*ConversationApi* | [**listTurns**](docs/ConversationApi.md#listturns) | **GET** /api/v1/conversations/{conversation_id}/turns | List Turns
+*ConversationApi* | [**retryTurn**](docs/ConversationApi.md#retryturn) | **POST** /api/v1/turns/{turn_id}/retry | Retry Turn
+*ConversationApi* | [**submitTurn**](docs/ConversationApi.md#submitturn) | **POST** /api/v1/turns | Submit Turn
 *DiscoveryApi* | [**recents**](docs/DiscoveryApi.md#recents) | **GET** /api/v1/recents | Recents
 *DiscoveryApi* | [**related**](docs/DiscoveryApi.md#related) | **GET** /api/v1/concepts/{concept_id}/related | Related
 *DiscoveryApi* | [**search**](docs/DiscoveryApi.md#search) | **GET** /api/v1/search | Search
@@ -119,6 +123,7 @@ All URIs are relative to *http://127.0.0.1:8000*
 
 ### Models
 
+- [ActiveQuestion](docs/ActiveQuestion.md)
 - [Activity](docs/Activity.md)
 - [ActivityPage](docs/ActivityPage.md)
 - [ArchivePatch](docs/ArchivePatch.md)
@@ -168,6 +173,7 @@ All URIs are relative to *http://127.0.0.1:8000*
 - [MigrationRequest](docs/MigrationRequest.md)
 - [ProbeRead](docs/ProbeRead.md)
 - [Profile](docs/Profile.md)
+- [ProgressRead](docs/ProgressRead.md)
 - [ProposalPage](docs/ProposalPage.md)
 - [ProposalRead](docs/ProposalRead.md)
 - [ProposedMapEdge](docs/ProposedMapEdge.md)
@@ -212,6 +218,9 @@ All URIs are relative to *http://127.0.0.1:8000*
 - [SuggestionRead](docs/SuggestionRead.md)
 - [TaskCreate](docs/TaskCreate.md)
 - [TaskReceipt](docs/TaskReceipt.md)
+- [TurnCreate](docs/TurnCreate.md)
+- [TurnPage](docs/TurnPage.md)
+- [TurnRead](docs/TurnRead.md)
 - [ValidationErrorResponse](docs/ValidationErrorResponse.md)
 - [ValidationIssue](docs/ValidationIssue.md)
 - [WorkRead](docs/WorkRead.md)

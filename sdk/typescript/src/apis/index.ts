@@ -3,6 +3,7 @@
 export * from './BankManagementApi.js';
 export * from './CapturesApi.js';
 export * from './ConceptMapApi.js';
+export * from './ConversationApi.js';
 export * from './DiscoveryApi.js';
 export * from './HealthApi.js';
 export * from './JobsApi.js';

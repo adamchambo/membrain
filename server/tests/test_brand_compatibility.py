@@ -3,7 +3,7 @@ import os
 import unittest
 from unittest.mock import patch
 from app.config import setting, config_path
-from app.portability.service import TABLES, validate
+from app.portability.service import TABLES, V2_TABLES, validate
 
 
 class BrandCompatibilityTests(unittest.TestCase):
@@ -22,5 +22,7 @@ class BrandCompatibilityTests(unittest.TestCase):
             self.assertEqual(str(config_path()), '/tmp/legacy-config.json')
 
     def test_legacy_portable_format_still_loads(self):
+        legacy = [table for table in TABLES if table not in V2_TABLES]
         for name in ('oracle.bank.v1', 'membrain.bank.v1'):
-            validate({'format': name, 'tables': {table: [] for table in TABLES}})
+            validate({'format': name, 'tables': {table: [] for table in legacy}})
+        validate({'format': 'membrain.bank.v2', 'tables': {table: [] for table in TABLES}})

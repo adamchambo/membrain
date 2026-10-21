@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.ai.embeddings import Profile, configured_profile, embed, persist_profile
 from app.captures.formatter import get_formatter
-from app.captures.ingestion import DeferredWork, apply_output, capture_context
+from app.captures.ingestion import DeferredWork, apply_output, capture_context, query_vector
 from app.captures.models import Capture
 from app.database import db_engine
 from app.errors import AppError, NotConfigured
@@ -60,12 +60,15 @@ def owned_job(db: Session, job_id: UUID, token: UUID) -> WorkItem | None:
 def process_capture(engine: Engine, job_id: UUID, token: UUID, processor=None):
     with Session(engine) as db:
         job = db.get(WorkItem, job_id)
-        capture = db.get(Capture, job.capture_id)
-        if capture.status == "pending":
-            context = capture_context(db, capture)
-            raw_text = capture.raw_text
-        else:
-            context = None
+        capture_id = job.capture_id
+        capture = db.get(Capture, capture_id)
+        raw_text = capture.raw_text if capture.status == "pending" else None
+    context = None
+    if raw_text is not None:
+        # Neither the query embedding nor inference holds a database transaction.
+        query = query_vector(engine, raw_text)
+        with Session(engine) as db:
+            context = capture_context(db, db.get(Capture, capture_id), query)
     if context is not None:
         processor = processor or get_formatter()
         output = processor.process(raw_text, context)
@@ -144,14 +147,17 @@ def process_feedback(engine: Engine, job_id: UUID, token: UUID, assessor=None):
         job.last_error = None
 
 
-def run_one(engine: Engine, *, job_id: UUID | None = None, processor=None, embedder=None, assessor=None) -> bool:
-    """Claim one eligible job; optional task adapters support isolated testing."""
+def run_one(engine: Engine, *, job_id: UUID | None = None, processor=None, embedder=None, assessor=None, client=None) -> bool:
+    """Claim one eligible job; optional task adapters and chat client support isolated testing."""
     claimed = claim(engine, job_id)
     if claimed is None:
         return False
     record_id, token, kind = claimed
     try:
-        if kind == "capture":
+        if kind == "turn":
+            from app.conversation.processor import process_turn
+            process_turn(engine, record_id, token, client)
+        elif kind == "capture":
             process_capture(engine, record_id, token, processor)
         elif kind == "embedding":
             process_embedding(engine, record_id, token, embedder)

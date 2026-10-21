@@ -21,6 +21,7 @@ __all__ = [
     "BankManagementApi",
     "CapturesApi",
     "ConceptMapApi",
+    "ConversationApi",
     "DiscoveryApi",
     "HealthApi",
     "JobsApi",
@@ -41,6 +42,7 @@ __all__ = [
     "ApiKeyError",
     "ApiAttributeError",
     "ApiException",
+    "ActiveQuestion",
     "Activity",
     "ActivityPage",
     "ArchivePatch",
@@ -90,6 +92,7 @@ __all__ = [
     "MigrationRequest",
     "ProbeRead",
     "Profile",
+    "ProgressRead",
     "ProposalPage",
     "ProposalRead",
     "ProposedMapEdge",
@@ -134,6 +137,9 @@ __all__ = [
     "SuggestionRead",
     "TaskCreate",
     "TaskReceipt",
+    "TurnCreate",
+    "TurnPage",
+    "TurnRead",
     "ValidationErrorResponse",
     "ValidationIssue",
     "WorkRead",
@@ -144,6 +150,7 @@ __all__ = [
 from membrain_sdk.api.bank_management_api import BankManagementApi as BankManagementApi
 from membrain_sdk.api.captures_api import CapturesApi as CapturesApi
 from membrain_sdk.api.concept_map_api import ConceptMapApi as ConceptMapApi
+from membrain_sdk.api.conversation_api import ConversationApi as ConversationApi
 from membrain_sdk.api.discovery_api import DiscoveryApi as DiscoveryApi
 from membrain_sdk.api.health_api import HealthApi as HealthApi
 from membrain_sdk.api.jobs_api import JobsApi as JobsApi
@@ -168,6 +175,7 @@ from membrain_sdk.exceptions import ApiAttributeError as ApiAttributeError
 from membrain_sdk.exceptions import ApiException as ApiException
 
 # import models into sdk package
+from membrain_sdk.models.active_question import ActiveQuestion as ActiveQuestion
 from membrain_sdk.models.activity import Activity as Activity
 from membrain_sdk.models.activity_page import ActivityPage as ActivityPage
 from membrain_sdk.models.archive_patch import ArchivePatch as ArchivePatch
@@ -217,6 +225,7 @@ from membrain_sdk.models.migration_read import MigrationRead as MigrationRead
 from membrain_sdk.models.migration_request import MigrationRequest as MigrationRequest
 from membrain_sdk.models.probe_read import ProbeRead as ProbeRead
 from membrain_sdk.models.profile import Profile as Profile
+from membrain_sdk.models.progress_read import ProgressRead as ProgressRead
 from membrain_sdk.models.proposal_page import ProposalPage as ProposalPage
 from membrain_sdk.models.proposal_read import ProposalRead as ProposalRead
 from membrain_sdk.models.proposed_map_edge import ProposedMapEdge as ProposedMapEdge
@@ -261,6 +270,9 @@ from membrain_sdk.models.suggestion import Suggestion as Suggestion
 from membrain_sdk.models.suggestion_read import SuggestionRead as SuggestionRead
 from membrain_sdk.models.task_create import TaskCreate as TaskCreate
 from membrain_sdk.models.task_receipt import TaskReceipt as TaskReceipt
+from membrain_sdk.models.turn_create import TurnCreate as TurnCreate
+from membrain_sdk.models.turn_page import TurnPage as TurnPage
+from membrain_sdk.models.turn_read import TurnRead as TurnRead
 from membrain_sdk.models.validation_error_response import ValidationErrorResponse as ValidationErrorResponse
 from membrain_sdk.models.validation_issue import ValidationIssue as ValidationIssue
 from membrain_sdk.models.work_read import WorkRead as WorkRead

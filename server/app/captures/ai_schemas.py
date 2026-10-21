@@ -18,12 +18,17 @@ class FormatCandidate(TaskOutput):
     uncertainty: list[str] = Field(default_factory=list, max_length=20)
 
 
+def blank_names(values: list[str]) -> list[str]:
+    return [value.strip() for value in values if isinstance(value, str) and value.strip()]
+
+
 class Understanding(TaskOutput):
     title: str = Field(min_length=1, max_length=255)
     explanation_text: str = Field(min_length=1, max_length=20000)
     source_excerpts: list[str] = Field(min_length=1, max_length=10)
     uncertainty: list[str] = Field(default_factory=list, max_length=20)
     existing_concept_id: UUID | None = None
+    subjects: list[str] = Field(default_factory=list, max_length=3)
 
     @field_validator("source_excerpts")
     @classmethod
@@ -32,15 +37,31 @@ class Understanding(TaskOutput):
             raise ValueError("Source excerpts must contain text")
         return values
 
+    @field_validator("subjects", mode="before")
+    @classmethod
+    def subject_names(cls, values):
+        return [value[:120] for value in blank_names(values or [])][:3]
+
 
 class Clarification(TaskOutput):
     question: str = Field(min_length=1, max_length=1000)
     source_excerpt: str = Field(min_length=1, max_length=20000)
 
 
+class SubjectProposal(TaskOutput):
+    title: str = Field(min_length=1, max_length=120)
+    aliases: list[str] = Field(default_factory=list, max_length=5)
+
+    @field_validator("aliases", mode="before")
+    @classmethod
+    def alias_names(cls, values):
+        return [value[:120] for value in blank_names(values or [])][:5]
+
+
 class CaptureOutput(TaskOutput):
-    schema_version: Literal["capture.v1"]
+    schema_version: Literal["capture.v1", "capture.v2"]
     topic_title: str | None = Field(default=None, min_length=1, max_length=255)
+    topic_subject: SubjectProposal | None = None
     understandings: list[Understanding] = Field(default_factory=list, max_length=20)
     clarifications: list[Clarification] = Field(default_factory=list, max_length=5)
     answered_clarification_id: UUID | None = None

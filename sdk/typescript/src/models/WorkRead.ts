@@ -64,6 +64,7 @@ export const WorkReadKindEnum = {
     ProfileMigration: 'profile_migration',
     ResourceExtract: 'resource_extract',
     Learning: 'learning',
+    Turn: 'turn',
 } as const;
 export type WorkReadKindEnum = typeof WorkReadKindEnum[keyof typeof WorkReadKindEnum];
 

@@ -107,6 +107,10 @@ Class | Method | HTTP request | Description
 *CapturesApi* | [**reject_proposal**](docs/CapturesApi.md#reject_proposal) | **POST** /api/v1/proposals/{proposal_id}/reject | Reject Proposal
 *CapturesApi* | [**undo_capture**](docs/CapturesApi.md#undo_capture) | **POST** /api/v1/captures/{capture_id}/undo | Undo Capture
 *ConceptMapApi* | [**concept_map**](docs/ConceptMapApi.md#concept_map) | **POST** /api/v1/concept-map | Concept Map
+*ConversationApi* | [**get_turn**](docs/ConversationApi.md#get_turn) | **GET** /api/v1/turns/{turn_id} | Get Turn
+*ConversationApi* | [**list_turns**](docs/ConversationApi.md#list_turns) | **GET** /api/v1/conversations/{conversation_id}/turns | List Turns
+*ConversationApi* | [**retry_turn**](docs/ConversationApi.md#retry_turn) | **POST** /api/v1/turns/{turn_id}/retry | Retry Turn
+*ConversationApi* | [**submit_turn**](docs/ConversationApi.md#submit_turn) | **POST** /api/v1/turns | Submit Turn
 *DiscoveryApi* | [**recents**](docs/DiscoveryApi.md#recents) | **GET** /api/v1/recents | Recents
 *DiscoveryApi* | [**related**](docs/DiscoveryApi.md#related) | **GET** /api/v1/concepts/{concept_id}/related | Related
 *DiscoveryApi* | [**search**](docs/DiscoveryApi.md#search) | **GET** /api/v1/search | Search
@@ -158,6 +162,7 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [ActiveQuestion](docs/ActiveQuestion.md)
  - [Activity](docs/Activity.md)
  - [ActivityPage](docs/ActivityPage.md)
  - [ArchivePatch](docs/ArchivePatch.md)
@@ -207,6 +212,7 @@ Class | Method | HTTP request | Description
  - [MigrationRequest](docs/MigrationRequest.md)
  - [ProbeRead](docs/ProbeRead.md)
  - [Profile](docs/Profile.md)
+ - [ProgressRead](docs/ProgressRead.md)
  - [ProposalPage](docs/ProposalPage.md)
  - [ProposalRead](docs/ProposalRead.md)
  - [ProposedMapEdge](docs/ProposedMapEdge.md)
@@ -251,6 +257,9 @@ Class | Method | HTTP request | Description
  - [SuggestionRead](docs/SuggestionRead.md)
  - [TaskCreate](docs/TaskCreate.md)
  - [TaskReceipt](docs/TaskReceipt.md)
+ - [TurnCreate](docs/TurnCreate.md)
+ - [TurnPage](docs/TurnPage.md)
+ - [TurnRead](docs/TurnRead.md)
  - [ValidationErrorResponse](docs/ValidationErrorResponse.md)
  - [ValidationIssue](docs/ValidationIssue.md)
  - [WorkRead](docs/WorkRead.md)

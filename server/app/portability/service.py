@@ -14,19 +14,31 @@ from app.jobs.service import enqueue, enqueue_capture, enqueue_embedding
 from app.models import Base
 from app.portability.models import ImportBatch
 
+FORMAT = "membrain.bank.v2"
+V1_FORMATS = ("membrain.bank.v1", "oracle.bank.v1")
 TABLES = (
     "conversations", "captures", "ai_proposals", "concepts", "capture_concepts",
     "explanation_revisions", "resources", "concept_resources", "concept_relationships",
     "review_sessions", "review_scope_concepts", "review_questions", "review_attempts", "review_attempt_concepts",
     "subjects", "subject_concepts", "source_versions", "source_chunks", "learning_artifacts", "learning_suggestions",
+    "conversation_turns", "learning_needs", "learning_need_events",
 )
 DEFERRED = {"captures": {"reply_to_proposal_id"}, "subjects": {"parent_id"},
-            "learning_suggestions": {"applied_revision_id"}}
+            "learning_suggestions": {"applied_revision_id"}, "conversations": {"subject_id"}}
 # Suggestions must exist before revisions bearing their provenance are inserted.
-ORDER = ("conversations", "captures", "ai_proposals", "concepts", "capture_concepts", "learning_artifacts",
+ORDER = ("conversations", "captures", "conversation_turns", "ai_proposals", "concepts", "capture_concepts", "learning_artifacts",
          "learning_suggestions", "explanation_revisions", "resources", "concept_resources", "concept_relationships",
          "review_sessions", "review_scope_concepts", "review_questions", "review_attempts", "review_attempt_concepts",
-         "subjects", "subject_concepts", "source_versions", "source_chunks")
+         "subjects", "subject_concepts", "source_versions", "source_chunks", "learning_needs", "learning_need_events")
+# Columns added by v2, filled when importing a v1 document; v1 data predates automatic organisation.
+V2_TABLES = ("conversation_turns", "learning_needs", "learning_need_events")
+V2_COLUMNS = {
+    "conversations": {"subject_id": None, "active_activity": None},
+    "subjects": {"aliases": [], "origin": "user"},
+    "subject_concepts": {"origin": "user", "capture_id": None},
+    "review_sessions": {"conversation_id": None, "target_count": None},
+    "review_questions": {"format": "open", "options": None, "answer_key": None},
+}
 
 
 def encode(value):
@@ -49,19 +61,44 @@ def export_bank(db):
         if total > 10000:
             raise Conflict("Portable JSON is limited to 10000 records; use a database backup for this bank")
         tables[name] = [{key: encode(value) for key, value in row.items()} for row in rows]
-    result = {"format": "membrain.bank.v1", "tables": tables,
+    result = {"format": FORMAT, "tables": tables,
               "excluded": ["credentials", "embedding_vectors", "runtime_jobs", "audio", "provider_connections"]}
     if len(json.dumps(result).encode()) > 32 * 1024 * 1024:
         raise Conflict("Portable JSON is limited to 32 MiB; use a database backup for this bank")
     return result
 
 
+def upgrade_v1(tables: dict) -> dict:
+    """Return v1 tables in v2 shape: new tables empty, new columns at their v1-equivalent value.
+
+    Only the known added columns are filled, so a malformed v1 document still fails
+    exact-column validation. A membership's creation time is unknown in v1; its subject's
+    creation time is used as the earliest truthful bound.
+    """
+    if not isinstance(tables, dict) or set(tables) != set(TABLES) - set(V2_TABLES):
+        raise Conflict("Unsupported portable format or table set")
+    subject_times = {item.get("id"): item.get("created_at") for item in tables.get("subjects", []) if isinstance(item, dict)}
+    upgraded = {name: [] for name in V2_TABLES}
+    for name, items in tables.items():
+        if not isinstance(items, list):
+            raise Conflict("Portable table must contain at most 10000 records")
+        added = V2_COLUMNS.get(name, {})
+        upgraded[name] = [{**added, **({"created_at": subject_times.get(item.get("subject_id"))} if name == "subject_concepts" else {}),
+                           **item} if isinstance(item, dict) else item for item in items]
+    return upgraded
+
+
 def validate(document):
-    if document.get("format") not in ("membrain.bank.v1", "oracle.bank.v1") or not isinstance(document.get("tables"), dict) or set(document["tables"]) != set(TABLES):
+    if document.get("format") in V1_FORMATS:
+        tables = upgrade_v1(document.get("tables"))
+    elif document.get("format") == FORMAT and isinstance(document.get("tables"), dict) and set(document["tables"]) == set(TABLES):
+        tables = document["tables"]
+    else:
         raise Conflict("Unsupported portable format or table set")
     serialized = json.dumps(document, sort_keys=True)
     if len(serialized.encode()) > 32 * 1024 * 1024:
         raise Conflict("Portable JSON exceeds 32 MiB")
+    document = {**document, "tables": tables}
     counts, ids, rows = {}, {}, {}
     for name in TABLES:
         table = Base.metadata.tables[name]
@@ -96,7 +133,8 @@ def validate(document):
                         if not isinstance(value, int) or isinstance(value, bool):
                             raise ValueError()
                     elif column.type.python_type is dict:
-                        if not isinstance(value, dict):
+                        # JSONB holds objects (payloads, effects) and arrays (aliases, progress, options).
+                        if not isinstance(value, (dict, list)):
                             raise ValueError()
                     row[column.name] = value
                 key = tuple(row[c.name] for c in table.primary_key)
@@ -167,9 +205,15 @@ def import_bank(db, document, request_id, preview=True):
             for table, item_id, values in postponed:
                 db.execute(update(table).where(table.c.id == item_id).values(**values))
             # Work is rebuilt under the destination configuration, never imported.
+            # A conversation turn owns its capture; processing it as a plain capture too would bank it twice.
+            turn_captures = {row["capture_id"] for row in rows["conversation_turns"]}
             for row in rows["captures"]:
-                if row["status"] == "pending":
+                if row["status"] == "pending" and row["id"] not in turn_captures:
                     enqueue_capture(db, mapping[str(row["id"])])
+            for row in sorted(rows["conversation_turns"], key=lambda item: item["sequence"]):
+                if row["completed_at"] is None:
+                    item_id = mapping[str(row["id"])]
+                    enqueue(db, dedup_key=f"turn:{item_id}", kind="turn", arguments={"turn_id": str(item_id)})
             for row in rows["explanation_revisions"]:
                 if row["retracted_at"] is None:
                     enqueue_embedding(db, mapping[str(row["id"])])

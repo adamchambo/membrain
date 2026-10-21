@@ -43,8 +43,8 @@ class WorkRead(BaseModel):
     @field_validator('kind')
     def kind_validate_enum(cls, value):
         """Validates the enum"""
-        if value not in set(['capture', 'embedding', 'review_feedback', 'profile_migration', 'resource_extract', 'learning']):
-            raise ValueError("must be one of enum values ('capture', 'embedding', 'review_feedback', 'profile_migration', 'resource_extract', 'learning')")
+        if value not in set(['capture', 'embedding', 'review_feedback', 'profile_migration', 'resource_extract', 'learning', 'turn']):
+            raise ValueError("must be one of enum values ('capture', 'embedding', 'review_feedback', 'profile_migration', 'resource_extract', 'learning', 'turn')")
         return value
 
     @field_validator('status')

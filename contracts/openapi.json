@@ -1,6 +1,69 @@
 {
   "components": {
     "schemas": {
+      "ActiveQuestion": {
+        "description": "The question awaiting an answer; multiple-choice keys are never included.",
+        "properties": {
+          "format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Format"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
+          "options": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target"
+          },
+          "type": {
+            "enum": [
+              "practice",
+              "diagnostic"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "question"
+        ],
+        "title": "ActiveQuestion",
+        "type": "object"
+      },
       "Activity": {
         "properties": {
           "concept_id": {
@@ -1812,6 +1875,25 @@
           "revision"
         ],
         "title": "Profile",
+        "type": "object"
+      },
+      "ProgressRead": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "text"
+        ],
+        "title": "ProgressRead",
         "type": "object"
       },
       "ProposalPage": {
@@ -3734,6 +3816,220 @@
         "title": "TaskReceipt",
         "type": "object"
       },
+      "TurnCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "client_message_id": {
+            "description": "Client-generated retry key; resubmitting it returns the same turn.",
+            "format": "uuid",
+            "title": "Client Message Id",
+            "type": "string"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Existing conversation, or omitted to start one.",
+            "title": "Conversation Id"
+          },
+          "input_kind": {
+            "default": "text",
+            "enum": [
+              "text",
+              "voice_transcript"
+            ],
+            "title": "Input Kind",
+            "type": "string"
+          },
+          "text": {
+            "description": "The user's message, saved verbatim.",
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "timezone": {
+            "default": "UTC",
+            "description": "IANA timezone used to interpret dates such as 'last week'.",
+            "maxLength": 64,
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "client_message_id"
+        ],
+        "title": "TurnCreate",
+        "type": "object"
+      },
+      "TurnPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TurnRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_before": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Pass as before to load older turns.",
+            "title": "Next Before"
+          }
+        },
+        "required": [
+          "items",
+          "next_before"
+        ],
+        "title": "TurnPage",
+        "type": "object"
+      },
+      "TurnRead": {
+        "properties": {
+          "active_question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActiveQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The conversation's current question, if any, at read time."
+          },
+          "banked_concept_ids": {
+            "description": "Concepts whose saved explanation this turn created or updated.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Banked Concept Ids",
+            "type": "array"
+          },
+          "capture_id": {
+            "format": "uuid",
+            "title": "Capture Id",
+            "type": "string"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "conversation_id": {
+            "format": "uuid",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "progress": {
+            "items": {
+              "$ref": "#/components/schemas/ProgressRead"
+            },
+            "title": "Progress",
+            "type": "array"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "processing",
+              "completed",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "conversation_id",
+          "capture_id",
+          "sequence",
+          "message",
+          "status",
+          "progress",
+          "reply",
+          "error",
+          "job_id",
+          "banked_concept_ids",
+          "active_question",
+          "created_at",
+          "completed_at"
+        ],
+        "title": "TurnRead",
+        "type": "object"
+      },
       "ValidationErrorResponse": {
         "properties": {
           "detail": {
@@ -3830,7 +4126,8 @@
               "review_feedback",
               "profile_migration",
               "resource_extract",
-              "learning"
+              "learning",
+              "turn"
             ],
             "title": "Kind",
             "type": "string"
@@ -6050,6 +6347,107 @@
         "summary": "Conversation History",
         "tags": [
           "captures"
+        ]
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/turns": {
+      "get": {
+        "operationId": "list_turns",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "before",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Requested record not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Operation conflicts with current state or scope."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Required provider or configuration unavailable."
+          }
+        },
+        "summary": "List Turns",
+        "tags": [
+          "conversation"
         ]
       }
     },
@@ -8815,6 +9213,225 @@
         "summary": "Timeline",
         "tags": [
           "discovery"
+        ]
+      }
+    },
+    "/api/v1/turns": {
+      "post": {
+        "description": "Save the message now; the worker interprets it, acts and writes the reply.",
+        "operationId": "submit_turn",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Requested record not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Operation conflicts with current state or scope."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Required provider or configuration unavailable."
+          }
+        },
+        "summary": "Submit Turn",
+        "tags": [
+          "conversation"
+        ]
+      }
+    },
+    "/api/v1/turns/{turn_id}": {
+      "get": {
+        "description": "Poll progress and the reply; progress is persisted, so reconnecting replays it.",
+        "operationId": "get_turn",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "turn_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Turn Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Requested record not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Operation conflicts with current state or scope."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Required provider or configuration unavailable."
+          }
+        },
+        "summary": "Get Turn",
+        "tags": [
+          "conversation"
+        ]
+      }
+    },
+    "/api/v1/turns/{turn_id}/retry": {
+      "post": {
+        "operationId": "retry_turn",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "turn_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Turn Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TurnRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Requested record not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Operation conflicts with current state or scope."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Request validation failed."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Required provider or configuration unavailable."
+          }
+        },
+        "summary": "Retry Turn",
+        "tags": [
+          "conversation"
         ]
       }
     },

@@ -19,6 +19,10 @@ class Conversation(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    # Learning context derived from the conversation, e.g. "I'm looking into maths".
+    subject_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="SET NULL", use_alter=True, name="fk_conversation_subject"), nullable=True)
+    # The practice question or diagnostic currently awaiting the user's answer.
+    active_activity: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
 
 class Capture(Base):

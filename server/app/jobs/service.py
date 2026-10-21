@@ -17,7 +17,7 @@ from app.jobs.models import WorkItem
 class WorkRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: UUID
-    kind: Literal["capture", "embedding", "review_feedback", "profile_migration", "resource_extract", "learning"]
+    kind: Literal["capture", "embedding", "review_feedback", "profile_migration", "resource_extract", "learning", "turn"]
     status: Literal["pending", "running", "succeeded", "failed", "cancelled"]
     attempts: int
     last_error: str | None

@@ -4,17 +4,20 @@ import re
 from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import case, func, select
+from sqlalchemy import case, exists, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.ai.embeddings import embed
 from app.captures.ai_schemas import CaptureOutput
 from app.captures.models import AIProposal, Capture, Conversation
 from app.captures.schemas import CaptureReceipt, ConversationRead, QuickCapture
-from app.errors import Conflict, NotFound, Unavailable
+from app.errors import Conflict, NotConfigured, NotFound, Unavailable
 from app.jobs.models import WorkItem
 from app.jobs.service import enqueue_capture, enqueue_embedding
-from app.knowledge.models import CaptureConcept, Concept, ConceptResource, ExplanationRevision, Resource
+from app.knowledge.models import CaptureConcept, Concept, ConceptEmbedding, ConceptResource, ExplanationRevision, Resource
+from app.learning.models import Subject
+from app.learning.organisation import assign, ensure_subject, subject_index
 from app.pagination import before_cursor, encode_cursor
 
 
@@ -40,6 +43,14 @@ def _existing_request(db: Session, data: QuickCapture) -> Capture | None:
     return capture
 
 
+def save_bookmarks(db: Session, capture: Capture) -> None:
+    """Save links in capture as resources, without implying the user learned their content."""
+    urls = list(dict.fromkeys(re.findall(r"https?://[^\s<>\"']+", capture.raw_text)))[:20]
+    for uri in urls:
+        db.add(Resource(capture_id=capture.id, kind="site", uri=uri.rstrip(".,;!?)]}")))
+    db.flush()
+
+
 def ingest(db: Session, data: QuickCapture) -> CaptureReceipt:
     try:
         with db.begin():
@@ -62,11 +73,7 @@ def ingest(db: Session, data: QuickCapture) -> CaptureReceipt:
             db.add(capture)
             db.flush()
             enqueue_capture(db, capture.id)
-            # Bookmarks are saved without implying the user learned their content.
-            urls = list(dict.fromkeys(re.findall(r"https?://[^\s<>\"']+", data.raw_text)))[:20]
-            for uri in urls:
-                db.add(Resource(capture_id=capture.id, kind="site", uri=uri.rstrip(".,;!?)]}")))
-            db.flush()
+            save_bookmarks(db, capture)
             return receipt(db, capture)
     except IntegrityError:
         # Concurrent retries of the same request can race on its unique key.
@@ -89,8 +96,35 @@ def conversation_history(db: Session, conversation_id: UUID, cursor: str | None,
     return ConversationRead(id=conversation.id, title=conversation.title, captures=rows[:limit], next_cursor=next_cursor)
 
 
-def capture_context(db: Session, capture: Capture) -> dict:
-    """Bound context to this conversation and a small number of title matches."""
+# The local chat model has an 8k-token window shared by instructions, schema and output.
+MAX_CANDIDATES = 10
+CANDIDATE_CHARACTERS = 600
+SEMANTIC_MINIMUM = 0.6
+
+
+def query_vector(engine, raw_text: str) -> tuple[list[float], str] | None:
+    """Embed raw_text as a retrieval query outside any transaction.
+
+    Returns (vector, profile_key), or None when embeddings are unavailable or no saved
+    explanation has a vector yet; retrieval then falls back to conversation and title matches.
+    """
+    from app.setup.profiles import active_profile
+    try:
+        with Session(engine) as db, db.begin():
+            profile = active_profile(db)
+            if not db.scalar(select(exists().where(ConceptEmbedding.model_key == profile.key))):
+                return None
+        return embed(raw_text[:4000], profile, query=True), profile.key
+    except (NotConfigured, Unavailable):
+        return None
+
+
+def capture_context(db: Session, capture: Capture, query: tuple[list[float], str] | None = None) -> dict:
+    """Bound context to this conversation, title matches and semantically similar saved ideas.
+
+    query is an optional (vector, profile_key) for the message; it lets a paraphrase saved
+    in another conversation be recognised as the same concept instead of a duplicate.
+    """
     predecessor = db.scalar(select(WorkItem.id).join(Capture, WorkItem.capture_id == Capture.id).where(
         Capture.conversation_id == capture.conversation_id, Capture.id != capture.id,
         (Capture.created_at < capture.created_at) | ((Capture.created_at == capture.created_at) & (Capture.id < capture.id)),
@@ -103,19 +137,24 @@ def capture_context(db: Session, capture: Capture) -> dict:
         .order_by(Capture.created_at.desc(), Capture.id.desc()).limit(6)).all()
     linked = select(CaptureConcept.concept_id).join(Capture, CaptureConcept.capture_id == Capture.id).where(
         Capture.conversation_id == capture.conversation_id, Capture.status != "archived")
-    concepts = db.scalars(select(Concept).where(Concept.archived_at.is_(None),
-        (Concept.id.in_(linked)) | (func.strpos(func.lower(capture.raw_text), func.lower(Concept.title)) > 0))
-        .order_by(case((func.strpos(func.lower(capture.raw_text), func.lower(Concept.title)) > 0, 0), else_=1),
-                  Concept.created_at.desc(), Concept.id.desc()).limit(20)).all()
+    titled = func.strpos(func.lower(capture.raw_text), func.lower(Concept.title)) > 0
+    concepts = list(db.scalars(select(Concept).where(Concept.archived_at.is_(None), Concept.id.in_(linked) | titled)
+        .order_by(case((titled, 0), else_=1), Concept.created_at.desc(), Concept.id.desc()).limit(MAX_CANDIDATES)).all())
+    if query is not None:
+        from app.discovery.service import vector_search
+        for hit in vector_search(db, query[0], query[1], 6):
+            if hit.similarity is not None and hit.similarity >= SEMANTIC_MINIMUM and all(c.id != hit.id for c in concepts):
+                concepts.append(db.get(Concept, hit.id))
     existing = []
-    remaining_characters = 24000
-    for concept in concepts:
+    for concept in concepts[:MAX_CANDIDATES]:
         revision = db.scalar(select(ExplanationRevision).where(ExplanationRevision.concept_id == concept.id,
             ExplanationRevision.retracted_at.is_(None)).order_by(ExplanationRevision.revision_number.desc()).limit(1))
-        if revision and len(revision.body) <= remaining_characters:
-            existing.append({"id": str(concept.id), "title": concept.title, "revision_id": str(revision.id),
-                             "explanation": revision.body})
-            remaining_characters -= len(revision.body)
+        if revision:
+            body = revision.body if len(revision.body) <= CANDIDATE_CHARACTERS else revision.body[:CANDIDATE_CHARACTERS] + " …"
+            existing.append({"id": str(concept.id), "title": concept.title, "revision_id": str(revision.id), "explanation": body})
+    subject = db.get(Subject, conversation.subject_id) if conversation and conversation.subject_id else None
+    subjects = [{"title": row.title, "aliases": row.aliases[:5]}
+                for row in db.scalars(select(Subject).order_by(Subject.title, Subject.id).limit(60)).all()]
     questions = db.scalars(select(AIProposal).join(Capture, Capture.id == AIProposal.capture_id).where(
         Capture.conversation_id == capture.conversation_id, Capture.status != "archived",
         AIProposal.kind == "clarification", AIProposal.status == "pending")
@@ -125,7 +164,8 @@ def capture_context(db: Session, capture: Capture) -> dict:
         if explicit and explicit.status == "pending":
             questions.append(explicit)
     return {"topic": conversation.title if conversation else None,
-            "previous_user_messages": [row.raw_text[:4000] for row in reversed(history)], "existing_concepts": existing,
+            "conversation_subject": subject.title if subject else None, "subjects": subjects,
+            "previous_user_messages": [row.raw_text[:1000] for row in reversed(history)], "existing_concepts": existing,
             "pending_clarifications": [{"id": str(row.id), "questions": row.payload.get("questions", [])} for row in questions],
             "reply_to_proposal_id": str(capture.reply_to_proposal_id) if capture.reply_to_proposal_id else None}
 
@@ -198,8 +238,14 @@ def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: 
                           model_key=model_key, prompt_version=prompt_version, status="accepted", application_mode="automatic")
     db.add(proposal)
     db.flush()
+    conversation = db.get(Conversation, capture.conversation_id) if capture.conversation_id else None
+    index = subject_index(db)
+    if output.topic_subject and conversation is not None:
+        conversation.subject_id = ensure_subject(db, output.topic_subject.title, output.topic_subject.aliases, index).id
+    banked = []
     for item, body in zip(output.understandings, applied_bodies):
         concept = targets.get(item.existing_concept_id)
+        created = concept is None
         if concept is None:
             concept = Concept(title=item.title)
             db.add(concept)
@@ -214,10 +260,22 @@ def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: 
             db.add(CaptureConcept(capture_id=capture.id, concept_id=concept.id))
         db.flush()
         enqueue_embedding(db, revision.id)
+        names = item.subjects or ([db.get(Subject, conversation.subject_id).title] if conversation and conversation.subject_id else [])
+        subjects = []
+        for name in names:
+            subject = ensure_subject(db, name, index=index)
+            assign(db, subject.id, concept.id, capture.id)
+            subjects.append(subject.title)
+        banked.append({"concept_id": str(concept.id), "title": concept.title, "revision_id": str(revision.id),
+                       "created": created, "subjects": list(dict.fromkeys(subjects)), "body": body})
+    clarification_id = None
     if output.clarifications:
-        db.add(AIProposal(capture_id=capture.id, kind="clarification",
+        clarification = AIProposal(capture_id=capture.id, kind="clarification",
             payload={"questions": [x.model_dump() for x in output.clarifications]}, model_key=model_key,
-            prompt_version=prompt_version, status="pending"))
+            prompt_version=prompt_version, status="pending")
+        db.add(clarification)
+        db.flush()
+        clarification_id = str(clarification.id)
     reply_id = capture.reply_to_proposal_id or output.answered_clarification_id
     if reply_id:
         question = db.scalar(select(AIProposal).where(AIProposal.id == reply_id).with_for_update())
@@ -226,10 +284,13 @@ def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: 
             question.status = "accepted"
             question.application_mode = "user"
             question.reviewed_at = datetime.now(timezone.utc)
-    if output.topic_title and capture.conversation_id:
-        conversation = db.get(Conversation, capture.conversation_id)
-        conversation.title = output.topic_title
+    topic = output.topic_title or (output.topic_subject.title if output.topic_subject else None)
+    if topic and conversation is not None:
+        conversation.title = topic
     capture.status = "processed"
+    return {"banked": banked, "topic": topic,
+            "subject": db.get(Subject, conversation.subject_id).title if conversation and conversation.subject_id else None,
+            "clarifications": [x.question for x in output.clarifications], "clarification_id": clarification_id}
 
 
 def undo_capture(db: Session, capture_id: UUID) -> None:

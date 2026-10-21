@@ -4,6 +4,7 @@
 from membrain_sdk.api.bank_management_api import BankManagementApi
 from membrain_sdk.api.captures_api import CapturesApi
 from membrain_sdk.api.concept_map_api import ConceptMapApi
+from membrain_sdk.api.conversation_api import ConversationApi
 from membrain_sdk.api.discovery_api import DiscoveryApi
 from membrain_sdk.api.health_api import HealthApi
 from membrain_sdk.api.jobs_api import JobsApi
