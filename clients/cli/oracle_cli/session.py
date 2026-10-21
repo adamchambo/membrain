@@ -4,6 +4,7 @@ from dataclasses import dataclass, field, replace
 from uuid import UUID, uuid4
 from .jobs import Monitor
 from .menus import MENUS
+from . import terminal
 from .output import show
 from .types import Backend, ClientError, Context, Item, Result
 
@@ -97,14 +98,22 @@ class Session:
 
     def run(self):
         self.write('LOCAL STUB MODE — no server or persistent changes.' if self.backend.is_stub else f'Oracle — local API: {self.api_url}')
-        self.write('Commands: /back, /menu, /quit, /jobs, /setup. Capture: /show, /undo, /history. /retry resends retained input.')
+        self.write('Commands: /help, /back, /menu, /quit, /jobs, /setup. Capture: /show, /undo, /history. /retry resends retained input.')
         self.monitor.start()
         try:
             while self.running:
                 self.notifications()
                 self.render()
                 try:
-                    value = self.read('> ' if self.current.screen == 'input' else 'Choose: ')
+                    if self.current.screen != 'input' and terminal.interactive(self.read, self.write):
+                        frame = self.current
+                        menu = MENUS[frame.screen]
+                        title = menu.title + (f' — {frame.context.label}' if frame.context.label else '')
+                        choices = [(str(i), label) for i, (label, _) in enumerate(menu.choices, 1)]
+                        choices.append(('x', 'Exit') if frame.screen == 'main' else ('0', 'Back'))
+                        value = terminal.select(title, choices, self.read, self.write)
+                    else:
+                        value = self.read('> ' if self.current.screen == 'input' else 'Choose: ')
                 except (EOFError, KeyboardInterrupt):
                     break
                 self.handle(value)
@@ -118,25 +127,28 @@ class Session:
         if frame.screen == 'input':
             self.write('\n' + frame.prompt)
             return
+        if terminal.interactive(self.read, self.write):
+            return
         menu = MENUS[frame.screen]
         self.write('\n' + menu.title + (f' — {frame.context.label}' if frame.context.label else ''))
         for number, (label, _) in enumerate(menu.choices, 1):
             self.write(f'{number}. {label}')
-        self.write('0. ' + ('Exit' if frame.screen == 'main' else 'Back'))
+        self.write('x. Exit' if frame.screen == 'main' else '0. Back')
 
     def handle(self, value):
         command = value.strip()
-        if command == '/quit':
+        if command in ('/help', 'help', '--help', '-h', '?') and (command.startswith('/') or self.current.screen != 'input'):
+            self.help()
+            return
+        if command == '/quit' or (command.lower() == 'x' and self.current.screen == 'main'):
             self.running = False
             return
         if command == '/menu':
             self.main_menu()
             return
-        if command == '/back' or (command == '0' and self.current.screen != 'input'):
+        if command == '/back' or (command == '0' and self.current.screen not in ('input', 'main')):
             if len(self.stack) > 1:
                 self.stack.pop()
-            elif command == '0':
-                self.running = False
             return
         if command == '/setup':
             if self.setup:
@@ -166,7 +178,7 @@ class Session:
                 frame.items, frame.cursor = result.items, result.cursor
             return
         if command.startswith('/'):
-            self.write('Unknown command. Use /back, /menu, /quit, /jobs or /setup.')
+            self.write('Unknown command. Use /help to list commands.')
             return
         if not command and self.current.operation not in ('reflect.since', 'reflect.until'):
             self.write('Please enter a value.')
@@ -185,6 +197,25 @@ class Session:
             self.choose('scope.concepts', 'review.scope')
         else:
             self.push(target)
+
+    def help(self):
+        """Display terminal commands without changing the current screen or draft."""
+        self.write('Help — use ↑/↓ and Enter, type a displayed number, or use these commands:')
+        for line in (
+            '/help (or help, --help, -h, ? in menus) — show this help',
+            '/setup — configure chat, embeddings and database settings',
+            '/back — return to the previous screen',
+            '/menu — return to the main menu',
+            '/quit — exit the client; server jobs continue (x at the main menu)',
+            '/jobs — inspect processing status',
+            '/show — inspect the latest capture',
+            '/undo — retract derived changes from the latest capture',
+            '/history — show the current conversation history',
+            '/more — show the next page of results',
+            '/retry — resend input retained after a failed request',
+            'From your shell: oracle setup opens configuration; oracle --help lists startup options.',
+        ):
+            self.write(line)
 
     def has_scope(self):
         context = self.current.context
@@ -315,7 +346,9 @@ class Session:
             self.ask('review.answer', result.prompt, 'review_next', context=result.context)
 
     def action(self, operation):
-        if operation == 'capture.new':
+        if operation in ('setup', 'help'):
+            self.handle('/' + operation)
+        elif operation == 'capture.new':
             self.ask('capture.message', 'What did you learn? Enter an explanation, uncertainty, question or resource.', context=Context())
         elif operation in ('chat.recent', 'chat.find'):
             # Both can page through all conversations; no silent first-page-only search.

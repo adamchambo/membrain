@@ -18,6 +18,8 @@ MENUS = {
         ("Reflect on my learning", "reflect"),
         ("Continue a conversation", "conversations"),
         ("Processing status", "status"),
+        ("Settings / setup", "@setup"),
+        ("Help", "@help"),
     )),
     "capture": Menu("Capture", (
         ("Start a new conversation", "@capture.new"),

@@ -17,6 +17,11 @@ From the repository root, using Python 3.10+ (the existing project venv uses 3.1
 
 - `oracle` opens the interactive menu. First launch or an unready database opens
   setup automatically; setup can also be opened with `/setup` during a session.
+- Model setup first offers Local model (Ollama or LM Studio), Cloud provider
+  (OpenAI or another compatible provider), or Custom endpoint. Local addresses
+  are prefilled and editable; model names are entered manually. Local runtimes
+  must already be running with the model installed. Provider menus accept `0` to
+  return without saving. Embeddings retain explicit vector-profile settings.
 - `setup` configures an already running server. It selects the server address,
   reads readiness, and offers chat, embedding, database and validation settings.
 - `--stub` runs explicit demo responses without API requests or saved CLI state.
@@ -38,7 +43,12 @@ Provider keys are entered without terminal echo and submitted only to server set
 
 ## Navigation and learning
 
-Choose numbered menus. `0` returns in menus and exits at the main menu.
+The main menu includes Settings / setup and Help. `/help` displays commands at
+any session prompt; menus also accept `help`, `--help`, `-h` and `?`. From the shell,
+`oracle --help` lists startup options and `oracle setup` opens configuration.
+
+Use ↑/↓ to highlight a menu option and Enter to select it. Numbers and slash
+commands still work. Redirected input/output uses plain numbered menus. `0` returns in submenus; `x` exits at the main menu.
 `/back`, `/menu`, `/quit`, `/jobs` and `/setup` work at prompts. `/more` advances
 paged listings. Choices display real IDs and accept either a result number or UUID.
 

@@ -7,7 +7,7 @@ name = "oracle-cli"
 version = "0.1.0"
 description = "Oracle local API terminal client"
 requires-python = ">=3.10"
-dependencies = ["oracle-sdk==0.1.0"]
+dependencies = ["oracle-sdk==0.1.0", "prompt-toolkit>=3.0.52,<4"]
 
 [project.scripts]
 oracle = "oracle_cli.__main__:main"

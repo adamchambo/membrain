@@ -28,14 +28,27 @@ class SessionTests(unittest.TestCase):
         return session, backend, '\n'.join(output)
 
     def test_invalid_input_back_and_eof(self):
-        _, _, output = self.run_session('/back', '999', '', '0')
+        _, _, output = self.run_session('/back', '999', '', 'x')
         self.assertIn('Choose one of the displayed numbers', output)
         self.assertIn('Please enter a value', output)
         self.assertIn('Exiting', output)
         self.run_session()
 
+    def test_main_menu_exit_uses_x_and_zero_does_not_exit(self):
+        session = Session(StubAPI(), write=lambda text: None, monitor=QuietMonitor())
+        session.handle('0')
+        self.assertTrue(session.running)
+        session.handle('1')
+        session.handle('0')
+        self.assertEqual(session.current.screen, 'main')
+        session.handle('x')
+        self.assertFalse(session.running)
+        _, _, output = self.run_session('x')
+        self.assertIn('x. Exit', output)
+        self.assertNotIn('0. Exit', output)
+
     def test_capture_retains_typed_ids_and_raw_text(self):
-        session, backend, _ = self.run_session('1', '1', '  My explanation  ', '/show', '/undo', '/menu', '0')
+        session, backend, _ = self.run_session('1', '1', '  My explanation  ', '/show', '/undo', '/menu', 'x')
         self.assertEqual([call[0] for call in backend.calls], ['capture.message', 'capture.inspect', 'capture.undo'])
         self.assertEqual(backend.calls[0][1], '  My explanation  ')
         self.assertEqual(backend.calls[1][2].capture_id, DEMO)

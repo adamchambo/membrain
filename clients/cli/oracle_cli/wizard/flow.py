@@ -4,6 +4,7 @@ import oracle_sdk as sdk
 from pydantic import ValidationError
 from ..types import ClientError
 from . import models
+from ..terminal import select
 
 
 def run(backend, read=input, write=print, secret=getpass.getpass) -> bool:
@@ -15,11 +16,14 @@ def run(backend, read=input, write=print, secret=getpass.getpass) -> bool:
         write('Start the API, database and worker, then run oracle setup again.')
         return False
     while True:
-        write(f'\nSetup — database ready: {report.database.ready}; worker running: {report.worker.ready}; '
-              f'chat configured: {report.settings.chat.configured}; embeddings configured: {report.settings.embeddings.configured}')
-        write('1. Keep settings and finish\n2. Configure chat model\n3. Configure embeddings\n4. Set database connection\n5. Validate configured capabilities\n6. Disable a model capability\n7. Inspect or finish an embedding migration\n0. Finish later')
+        title = (f'Setup — database ready: {report.database.ready}; worker running: {report.worker.ready}; '
+                 f'chat configured: {report.settings.chat.configured}; embeddings configured: {report.settings.embeddings.configured}')
+        choices = [('1', 'Keep settings and finish'), ('2', 'Configure chat model'),
+                   ('3', 'Configure embeddings'), ('4', 'Set database connection'),
+                   ('5', 'Validate configured capabilities'), ('6', 'Disable a model capability'),
+                   ('7', 'Inspect or finish an embedding migration'), ('0', 'Finish later')]
         try:
-            choice = read('Setup choice: ').strip()
+            choice = select(title, choices, read, write, prompt='Setup choice: ').strip()
             if choice in ('0', '1', '/back', '/quit', '/menu'):
                 if not report.database.ready:
                     write('Database connection/migrations still need attention. Apply migrations using the server setup command: python -m app.setup --migrate.')
@@ -27,12 +31,12 @@ def run(backend, read=input, write=print, secret=getpass.getpass) -> bool:
                     write('Start the server worker for organization and learning tasks. Raw captures can still be saved when the database is ready.')
                 return True
             if choice == '2':
-                saved = backend.execute(backend.setup.save_setup, sdk.SetupConfiguration(chat=models.chat(read, secret)))
+                saved = backend.execute(backend.setup.save_setup, sdk.SetupConfiguration(chat=models.chat(read, secret, write)))
                 if getattr(saved, 'environment_overrides', []):
                     write('Environment overrides saved values for: ' + ', '.join(saved.environment_overrides))
                 write('Chat settings saved on the server.')
             elif choice == '3':
-                endpoint = models.embeddings(read, secret)
+                endpoint = models.embeddings(read, secret, write)
                 if report.settings.embeddings.configured:
                     migration = backend.execute(backend.setup.start_migration, sdk.MigrationRequest.from_dict(endpoint.to_dict()))
                     write(f'Embedding migration: {migration.id}; status {migration.status}. The current profile stays active until cutover. Use setup option 7 later.')
@@ -79,6 +83,8 @@ def run(backend, read=input, write=print, secret=getpass.getpass) -> bool:
         except (EOFError, KeyboardInterrupt):
             write('\nSetup stopped. Completed changes are saved; unfinished input is discarded.')
             return True
+        except models.Cancelled:
+            write('Returned to setup. No model settings saved.')
         except ClientError as error:
             write(str(error))
         except (ValidationError, ValueError, TypeError):

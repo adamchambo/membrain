@@ -30,7 +30,7 @@ class SetupTests(unittest.TestCase):
                 return NS(database=NS(ready=True),worker=NS(ready=True),settings=NS(chat=NS(configured=False),embeddings=NS(configured=True),environment_overrides=[]))
             def execute(self,fn,*args,**kwargs): return fn(*args)
         backend=Fake();output=[]
-        answers=iter(['2','http://localhost:11434/v1/chat/completions','model','1'])
+        answers=iter(['2','2','1','model','1'])
         run(backend,read=lambda prompt:next(answers),write=output.append,secret=lambda prompt:'provider-secret')
         self.assertEqual(backend.saved[0].model_fields_set,{'chat'})
         self.assertNotIn('provider-secret','\n'.join(output))
@@ -44,3 +44,36 @@ class SetupTests(unittest.TestCase):
             try:return next(inputs)
             except StopIteration:raise EOFError
         self.assertTrue(run(Fake(),read=read,write=lambda _:None))
+
+    def test_local_provider_defaults_and_no_key_prompt(self):
+        from oracle_cli.wizard import models
+        for runtime, port in [('1', '11434'), ('2', '1234')]:
+            answers = iter(['1', runtime, '', 'installed-model'])
+            def no_secret(prompt): raise AssertionError('Local model needs no key')
+            result = models.chat(lambda prompt: next(answers), no_secret)
+            self.assertEqual(result.url, f'http://localhost:{port}/v1/chat/completions')
+            self.assertIsNone(result.api_key)
+
+    def test_custom_endpoint_and_cloud_provider(self):
+        from oracle_cli.wizard import models
+        answers = iter(['3', 'http://localhost:9000/v1/chat/completions', 'model'])
+        result = models.chat(lambda prompt: next(answers), lambda prompt: '')
+        self.assertEqual(result.url, 'http://localhost:9000/v1/chat/completions')
+        answers = iter(['2', '2', 'https://provider.example/v1/chat/completions', 'remote-model'])
+        result = models.chat(lambda prompt: next(answers), lambda prompt: 'secret')
+        self.assertEqual(result.url, 'https://provider.example/v1/chat/completions')
+        self.assertEqual(result.api_key.get_secret_value(), 'secret')
+
+    def test_embedding_provider_preserves_profile(self):
+        from oracle_cli.wizard import models
+        answers = iter(['1', '1', '', 'nomic-embed-text', 'revision-1', '768', 'y'])
+        result = models.embeddings(lambda prompt: next(answers), lambda prompt: self.fail('No key needed'))
+        self.assertEqual(result.url, 'http://localhost:11434/v1/embeddings')
+        self.assertEqual(result.profile.dimensions, 768)
+        self.assertEqual(result.profile.document_prefix, 'search_document: ')
+
+    def test_back_from_provider_does_not_save(self):
+        from oracle_cli.wizard import models
+        answers = iter(['1', '0'])
+        with self.assertRaises(models.Cancelled):
+            models.chat(lambda prompt: next(answers), lambda prompt: '')
