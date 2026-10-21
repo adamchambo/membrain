@@ -16,7 +16,9 @@ knowledge merely because a subject, resource, question, or intention is mentione
 A message like 'I am learning about computers' sets topic_title and produces NO
 understandings. A resource link alone also produces NO understandings. A real
 explanation can yield several understandings. Every understanding needs exact,
-nonblank excerpts from the CURRENT raw_text supporting it. Keep uncertain claims
+nonblank excerpts from the CURRENT raw_text supporting it. Quote complete user
+statements, including uncertainty, negations and qualifiers. These source statements
+are saved verbatim; explanation_text is a draft and cannot strengthen their certainty. Keep uncertain claims
 uncertain in explanation_text itself. uncertainty lists additional caveats.
 
 Use existing_concept_id only for an unmistakable match among existing_concepts.

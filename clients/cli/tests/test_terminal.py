@@ -45,3 +45,15 @@ class TerminalTests(unittest.TestCase):
         output = []
         self.assertEqual(select('Menu', [('1', 'First')], read=lambda _: '1', write=output.append), '1')
         self.assertIn('1. First', output)
+
+    def test_background_tick_runs_before_enter_without_losing_typed_input(self):
+        output=io.StringIO();ticks=[]
+        with create_pipe_input() as terminal_input:
+            terminal_input.send_text('draft')
+            def tick():
+                ticks.append(True)
+                terminal_input.send_text('\r')
+            result=highlighted('Menu',[('1','First')],input=terminal_input,
+                output=Vt100_Output(output,lambda:Size(rows=24,columns=100),term='xterm-256color',enable_cpr=False),tick=tick)
+        self.assertEqual(result,'draft')
+        self.assertTrue(ticks)

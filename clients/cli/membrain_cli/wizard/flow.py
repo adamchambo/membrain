@@ -54,7 +54,7 @@ def run(backend, read=input, write=print, secret=getpass.getpass) -> bool:
                     capabilities.append('chat')
                 if report.settings.embeddings.configured:
                     capabilities.append('embeddings')
-                result = backend.execute(backend.setup.validate_setup, sdk.CapabilityCheck(capabilities=capabilities), _request_timeout=(2.0, 45.0))
+                result = backend.execute(backend.setup.validate_setup, sdk.CapabilityCheck(capabilities=capabilities), _request_timeout=(2.0, 135.0))
                 write(str({name: {'ready': probe.ready, 'detail': probe.detail} for name, probe in result.items()}))
             elif choice == '6':
                 capability = read('Disable chat or embeddings? ').strip()

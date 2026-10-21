@@ -58,6 +58,7 @@ __all__ = [
     "CapturePage",
     "CaptureRead",
     "CaptureReceipt",
+    "ChatEndpoint",
     "ChunkPage",
     "ChunkRead",
     "Citation",
@@ -74,7 +75,6 @@ __all__ = [
     "DecisionRead",
     "Detail",
     "EmbeddingEndpoint",
-    "Endpoint",
     "ErrorResponse",
     "HealthResponse",
     "ImportRead",
@@ -185,6 +185,7 @@ from membrain_sdk.models.capture_detail import CaptureDetail as CaptureDetail
 from membrain_sdk.models.capture_page import CapturePage as CapturePage
 from membrain_sdk.models.capture_read import CaptureRead as CaptureRead
 from membrain_sdk.models.capture_receipt import CaptureReceipt as CaptureReceipt
+from membrain_sdk.models.chat_endpoint import ChatEndpoint as ChatEndpoint
 from membrain_sdk.models.chunk_page import ChunkPage as ChunkPage
 from membrain_sdk.models.chunk_read import ChunkRead as ChunkRead
 from membrain_sdk.models.citation import Citation as Citation
@@ -201,7 +202,6 @@ from membrain_sdk.models.decision import Decision as Decision
 from membrain_sdk.models.decision_read import DecisionRead as DecisionRead
 from membrain_sdk.models.detail import Detail as Detail
 from membrain_sdk.models.embedding_endpoint import EmbeddingEndpoint as EmbeddingEndpoint
-from membrain_sdk.models.endpoint import Endpoint as Endpoint
 from membrain_sdk.models.error_response import ErrorResponse as ErrorResponse
 from membrain_sdk.models.health_response import HealthResponse as HealthResponse
 from membrain_sdk.models.import_read import ImportRead as ImportRead

@@ -19,8 +19,8 @@ import json
 
 from pydantic import BaseModel, ConfigDict, SecretStr, StrictStr, field_validator
 from typing import Any, ClassVar, Dict, Optional
+from membrain_sdk.models.chat_endpoint import ChatEndpoint
 from membrain_sdk.models.embedding_endpoint import EmbeddingEndpoint
-from membrain_sdk.models.endpoint import Endpoint
 from typing import Optional, Set
 from typing_extensions import Self
 from pydantic_core import to_jsonable_python
@@ -29,7 +29,7 @@ class SetupConfiguration(BaseModel):
     """
     SetupConfiguration
     """ # noqa: E501
-    chat: Optional[Endpoint] = None
+    chat: Optional[ChatEndpoint] = None
     database_mode: Optional[StrictStr] = 'existing'
     database_url: Optional[SecretStr] = None
     embeddings: Optional[EmbeddingEndpoint] = None
@@ -117,7 +117,7 @@ class SetupConfiguration(BaseModel):
             return cls.model_validate(obj)
 
         _values = {
-            "chat": Endpoint.from_dict(obj["chat"]) if obj.get("chat") is not None else None,
+            "chat": ChatEndpoint.from_dict(obj["chat"]) if obj.get("chat") is not None else None,
             "database_mode": obj.get("database_mode") if obj.get("database_mode") is not None else 'existing',
             "database_url": obj.get("database_url"),
             "embeddings": EmbeddingEndpoint.from_dict(obj["embeddings"]) if obj.get("embeddings") is not None else None

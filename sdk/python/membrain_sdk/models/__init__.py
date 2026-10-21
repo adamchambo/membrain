@@ -30,6 +30,7 @@ from membrain_sdk.models.capture_detail import CaptureDetail
 from membrain_sdk.models.capture_page import CapturePage
 from membrain_sdk.models.capture_read import CaptureRead
 from membrain_sdk.models.capture_receipt import CaptureReceipt
+from membrain_sdk.models.chat_endpoint import ChatEndpoint
 from membrain_sdk.models.chunk_page import ChunkPage
 from membrain_sdk.models.chunk_read import ChunkRead
 from membrain_sdk.models.citation import Citation
@@ -46,7 +47,6 @@ from membrain_sdk.models.decision import Decision
 from membrain_sdk.models.decision_read import DecisionRead
 from membrain_sdk.models.detail import Detail
 from membrain_sdk.models.embedding_endpoint import EmbeddingEndpoint
-from membrain_sdk.models.endpoint import Endpoint
 from membrain_sdk.models.error_response import ErrorResponse
 from membrain_sdk.models.health_response import HealthResponse
 from membrain_sdk.models.import_read import ImportRead

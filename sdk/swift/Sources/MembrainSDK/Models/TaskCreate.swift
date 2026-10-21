@@ -23,12 +23,15 @@ public struct TaskCreate: Sendable, Codable {
     /** Recorded scope, or empty for an explicit new teaching/clarification question. */
     public var conceptIds: [UUID]?
     public var kind: Kind
+    /** Completed prior learning result used as dialogue context. */
+    public var parentArtifactId: UUID?
     public var question: String? = ""
     public var resourceIds: [UUID]?
 
-    public init(conceptIds: [UUID]? = nil, kind: Kind, question: String? = "", resourceIds: [UUID]? = nil) {
+    public init(conceptIds: [UUID]? = nil, kind: Kind, parentArtifactId: UUID? = nil, question: String? = "", resourceIds: [UUID]? = nil) {
         self.conceptIds = conceptIds
         self.kind = kind
+        self.parentArtifactId = parentArtifactId
         self.question = question
         self.resourceIds = resourceIds
     }
@@ -36,6 +39,7 @@ public struct TaskCreate: Sendable, Codable {
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case conceptIds = "concept_ids"
         case kind
+        case parentArtifactId = "parent_artifact_id"
         case question
         case resourceIds = "resource_ids"
     }
@@ -46,6 +50,7 @@ public struct TaskCreate: Sendable, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(conceptIds, forKey: .conceptIds)
         try container.encode(kind, forKey: .kind)
+        try container.encodeIfPresent(parentArtifactId, forKey: .parentArtifactId)
         try container.encodeIfPresent(question, forKey: .question)
         try container.encodeIfPresent(resourceIds, forKey: .resourceIds)
     }

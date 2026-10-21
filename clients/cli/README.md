@@ -19,7 +19,9 @@ From the repository root, using Python 3.10+ (the existing project venv uses 3.1
   setup automatically; setup can also be opened with `/setup` during a session.
 - Model setup first offers Local model (Ollama or LM Studio), Cloud provider
   (OpenAI or another compatible provider), or Custom endpoint. Local addresses
-  are prefilled and editable; model names are entered manually. Local runtimes
+  are prefilled and editable; available local model IDs are offered for selection,
+  with manual entry when listing is unavailable. Chat profiles include standard
+  behavior and an explicit Qwen3 fast mode; other models retain their normal prompts. Local runtimes
   must already be running with the model installed. Provider menus accept `0` to
   return without saving. Embeddings retain explicit vector-profile settings.
 - `setup` configures an already running server. It selects the server address,
@@ -29,8 +31,8 @@ From the repository root, using Python 3.10+ (the existing project venv uses 3.1
   last saved address. The default is `http://127.0.0.1:8000`.
 - `--no-setup` skips automatic setup and uses the existing server settings.
 
-Start the API, database and worker separately, using the root README's server or
-Compose instructions. The wizard doesn't install services. Database switching and
+Use the root `./start` launcher for persistent services, or manage the API, database
+and worker separately using the root README's server or Compose instructions. The wizard doesn't install services. Database switching and
 migrations use the server setup command `python -m app.setup --migrate` from
 `server/`, with the server environment loaded. A stopped worker doesn't prevent
 raw capture when the database is ready, but organization and learning wait for it.
@@ -87,7 +89,8 @@ ISO time intervals and shows recorded review coverage, not inferred mastery.
 ## Background work and local state
 
 A worker thread polls known job IDs with bounded HTTP timeouts. It queues output;
-the UI prints results between prompts, never over an in-progress input line. The
+interactive prompts redraw safely when results arrive, preserving any typed draft.
+Redirected/scripted input still prints results between prompts. The
 server keeps processing after the CLI exits. Completed jobs remain inspectable
 without replaying their completion notifications at the next launch. Learning and review results can also
 be inspected through their job IDs in Processing status.
@@ -122,3 +125,13 @@ are injected; real-model quality and full Docker startup are separate acceptance
 
 The original `clients/cli/membrain.py` script remains available for its existing direct
 commands. The installed `membrain` command is the interactive client documented here.
+
+Clarification uses the previous generated result as conversational context, not
+banked knowledge. Follow-ups wait until that result is ready. Saving your own
+explanation afterwards creates a new capture when no concept is selected.
+
+Search defaults to hybrid when embeddings are configured; exact text and meaning
+modes are available in Explore. Meaning-search failures fall back to text with a
+message. Archived concepts can be browsed and restored. The subject menu can add
+concepts to a subject created from Explore. Reflection history first asks which
+changed concept to inspect.

@@ -106,7 +106,8 @@ class SDKBackend(CaptureCommands, BankCommands, ReviewCommands, LearningCommands
             raise ClientError('Choose a concept or enter an explicit question first.')
         receipt = self.execute(self.learning.create_task, sdk.TaskCreate(
             kind=kind, concept_ids=ids, question=question,
-            resource_ids=[context.resource_id] if context.resource_id else []))
+            resource_ids=[context.resource_id] if context.resource_id else [],
+            parent_artifact_id=context.artifact_id if kind in ("clarification", "lesson", "worked_example", "diagram") else None))
         context = replace(context, artifact_id=receipt.artifact_id, suggestion_id=None, question=question)
         return self.queue('Learning task queued. Generated material stays separate from your understanding.',
                           context, Job(receipt.job_id, 'learning', receipt.artifact_id))
@@ -115,7 +116,7 @@ class SDKBackend(CaptureCommands, BankCommands, ReviewCommands, LearningCommands
         """Perform operation using entered text and typed context; cursor continues a list."""
         if operation.startswith('capture.') or operation.startswith('chat.'):
             return self._capture(operation, text, context, cursor)
-        if operation.startswith('bank.') or operation.startswith('scope.'):
+        if operation.startswith(('bank.', 'scope.', 'subject.')):
             return self._bank(operation, text, context, cursor)
         if operation.startswith('review.'):
             return self._review(operation, text, context)

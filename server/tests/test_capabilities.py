@@ -216,3 +216,34 @@ class CapabilityTests(unittest.TestCase):
             target_work = db.scalars(select(WorkItem).where(WorkItem.profile_key == target.key)).all()
             self.assertTrue(target_work)
             self.assertTrue(all(job.status == "cancelled" for job in target_work))
+
+    def test_capture_cannot_upgrade_tentative_words_via_generated_paraphrase(self):
+        raw='I think binary uses two symbols, but I am not sure.'
+        receipt=self.save(raw)
+        self.process(receipt,support.output(support.understanding('Binary','The user understands binary uses two symbols.',source='binary uses two symbols')))
+        concept=self.rows(Concept)[0]
+        detail=self.api('GET',f'/concepts/{concept.id}')
+        self.assertEqual(detail['latest_revision']['body'],raw)
+
+    def test_clarification_followup_retains_server_owned_history(self):
+        first=self.api('POST','/learning-tasks',{'kind':'clarification','question':'Why does binary use two digits?'},202)
+        self.api('POST','/learning-tasks',{'kind':'clarification','question':'Explain more simply','parent_artifact_id':first['artifact_id']},409)
+        response={'content':'There are two possible symbols.','citations':[],'optional_questions':[],'uncertainty':[],'suggestions':[],'verification':'not_verified'}
+        with patch('app.learning.service.get_chat_client',return_value=support.ScriptedClient(response)):
+            run_one(self.engine,job_id=UUID(first['job_id']))
+        second=self.api('POST','/learning-tasks',{'kind':'clarification','question':'Explain more simply','parent_artifact_id':first['artifact_id']},202)
+        artifact=self.api('GET',f"/learning-artifacts/{second['artifact_id']}")
+        self.assertEqual([x['content'] for x in artifact['inputs']['history']],['Why does binary use two digits?','There are two possible symbols.'])
+        self.assertEqual(artifact['inputs']['question'],'Explain more simply')
+        self.assertEqual(self.rows(ExplanationRevision),[])
+
+    def test_unscoped_teaching_keeps_answer_but_cannot_propose_concept_changes(self):
+        receipt=self.api('POST','/learning-tasks',{'kind':'clarification','question':'What is binary?'},202)
+        response={'content':'Binary uses two symbols.','suggestions':[{'kind':'gap','concept_id':None,'rationale':'Model tried to invent a scope'}],'uncertainty':[],'citations':[],'optional_questions':[],'verification':'not_verified'}
+        with patch('app.learning.service.get_chat_client',return_value=support.ScriptedClient(response)):
+            run_one(self.engine,job_id=UUID(receipt['job_id']))
+        artifact=self.api('GET',f"/learning-artifacts/{receipt['artifact_id']}")
+        self.assertEqual(artifact['output']['content'],'Binary uses two symbols.')
+        self.assertEqual(artifact['suggestions'],[])
+        self.assertEqual(artifact['inputs']['omitted_suggestions'],1)
+        self.assertEqual(self.rows(ExplanationRevision),[])

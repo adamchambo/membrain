@@ -10,6 +10,12 @@ from membrain_cli.wizard.flow import run
 
 
 class SetupTests(unittest.TestCase):
+    def setUp(self):
+        from unittest.mock import patch
+        probe = patch("membrain_cli.wizard.models.available_models", return_value=[])
+        probe.start()
+        self.addCleanup(probe.stop)
+
     def test_state_is_per_server_and_contains_ids_only(self):
         with TemporaryDirectory() as directory:
             path=Path(directory)/'state.json';store=Store(path)
@@ -30,7 +36,7 @@ class SetupTests(unittest.TestCase):
                 return NS(database=NS(ready=True),worker=NS(ready=True),settings=NS(chat=NS(configured=False),embeddings=NS(configured=True),environment_overrides=[]))
             def execute(self,fn,*args,**kwargs): return fn(*args)
         backend=Fake();output=[]
-        answers=iter(['2','2','1','model','1'])
+        answers=iter(['2','2','1','model','1','1'])
         run(backend,read=lambda prompt:next(answers),write=output.append,secret=lambda prompt:'provider-secret')
         self.assertEqual(backend.saved[0].model_fields_set,{'chat'})
         self.assertNotIn('provider-secret','\n'.join(output))
@@ -48,7 +54,7 @@ class SetupTests(unittest.TestCase):
     def test_local_provider_defaults_and_no_key_prompt(self):
         from membrain_cli.wizard import models
         for runtime, port in [('1', '11434'), ('2', '1234')]:
-            answers = iter(['1', runtime, '', 'installed-model'])
+            answers = iter(['1', runtime, '', 'installed-model', '1'])
             def no_secret(prompt): raise AssertionError('Local model needs no key')
             result = models.chat(lambda prompt: next(answers), no_secret)
             self.assertEqual(result.url, f'http://localhost:{port}/v1/chat/completions')
@@ -56,10 +62,10 @@ class SetupTests(unittest.TestCase):
 
     def test_custom_endpoint_and_cloud_provider(self):
         from membrain_cli.wizard import models
-        answers = iter(['3', 'http://localhost:9000/v1/chat/completions', 'model'])
+        answers = iter(['3', 'http://localhost:9000/v1/chat/completions', 'model', '1'])
         result = models.chat(lambda prompt: next(answers), lambda prompt: '')
         self.assertEqual(result.url, 'http://localhost:9000/v1/chat/completions')
-        answers = iter(['2', '2', 'https://provider.example/v1/chat/completions', 'remote-model'])
+        answers = iter(['2', '2', 'https://provider.example/v1/chat/completions', 'remote-model', '1'])
         result = models.chat(lambda prompt: next(answers), lambda prompt: 'secret')
         self.assertEqual(result.url, 'https://provider.example/v1/chat/completions')
         self.assertEqual(result.api_key.get_secret_value(), 'secret')
@@ -92,3 +98,21 @@ class SetupTests(unittest.TestCase):
             store.save(store.api_url)
             self.assertEqual(str(Store().resume(store.api_url).conversation_id), identifier)
             self.assertTrue(legacy.exists())
+
+
+class ModelDiscoveryTests(unittest.TestCase):
+    def test_available_model_ids_are_filtered_without_reading_a_local_model_directory(self):
+        import io,json
+        from unittest.mock import patch
+        from membrain_cli.wizard.models import available_models
+        payload=json.dumps({'data':[{'id':'oracle-chat'},{'id':'nomic-embed-text-v1.5'}]}).encode()
+        with patch('membrain_cli.wizard.models.urlopen',return_value=io.BytesIO(payload)):
+            self.assertEqual(available_models('http://localhost:1234/v1','chat'),['oracle-chat'])
+        with patch('membrain_cli.wizard.models.urlopen',return_value=io.BytesIO(payload)):
+            self.assertEqual(available_models('http://localhost:1234/v1','embeddings'),['nomic-embed-text-v1.5'])
+
+    def test_unavailable_model_listing_keeps_manual_entry_possible(self):
+        from unittest.mock import patch
+        from membrain_cli.wizard.models import available_models
+        with patch('membrain_cli.wizard.models.urlopen',side_effect=OSError('offline')):
+            self.assertEqual(available_models('http://localhost:1234/v1','chat'),[])

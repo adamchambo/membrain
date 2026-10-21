@@ -57,7 +57,7 @@ class Session:
             except OSError:
                 self.write('Server operation succeeded, but local resume IDs could not be saved.')
 
-    def invoke(self, operation, text='', context=None, cursor=None):
+    def invoke(self, operation, text='', context=None, cursor=None, selection=False):
         try:
             result = self.backend.call(operation, text, context or self.current.context, cursor=cursor)
         except ClientError as error:
@@ -67,7 +67,7 @@ class Session:
             self.write('Invalid input. Choose a displayed item or supply a valid UUID/value.')
             return None
         self.current.context = result.context
-        show(result, self.write)
+        show(replace(result, items=()) if selection and terminal.interactive(self.read, self.write) else result, self.write)
         if result.job:
             self.known_jobs[result.job.id] = result.job
             self.monitor.watch(result.job, result.context)
@@ -111,16 +111,24 @@ class Session:
                         title = menu.title + (f' — {frame.context.label}' if frame.context.label else '')
                         choices = [(str(i), label) for i, (label, _) in enumerate(menu.choices, 1)]
                         choices.append(('x', 'Exit') if frame.screen == 'main' else ('0', 'Back'))
-                        value = terminal.select(title, choices, self.read, self.write)
+                        value = terminal.select(title, choices, self.read, self.write, tick=self.notifications)
+                    elif self.current.operation == 'selection' and terminal.interactive(self.read, self.write):
+                        choices = [(str(i), item.title + (f' — {item.detail}' if item.detail else ''))
+                                   for i, item in enumerate(self.current.items, 1)]
+                        if self.current.cursor:
+                            choices.append(('/more', 'More results'))
+                        choices.append(('/back', 'Back'))
+                        value = terminal.select('Select a result', choices, self.read, self.write, tick=self.notifications)
                     else:
-                        value = self.read('> ' if self.current.screen == 'input' else 'Choose: ')
+                        value = terminal.read_text('> ' if self.current.screen == 'input' else 'Choose: ',
+                                                   self.read, self.write, tick=self.notifications)
                 except (EOFError, KeyboardInterrupt):
                     break
                 self.handle(value)
         finally:
             self.monitor.stop()
             self.remember()
-            self.write('Exiting. Server jobs continue; local draft text is discarded.')
+            self.write('Exiting. Saved jobs remain on the server; processing requires a running worker. Local draft text is discarded.')
 
     def render(self):
         frame = self.current
@@ -173,7 +181,7 @@ class Session:
             if not frame.cursor or not frame.list_operation:
                 self.write('No further page is available.')
                 return
-            result = self.invoke(frame.list_operation, frame.list_text, cursor=frame.cursor)
+            result = self.invoke(frame.list_operation, frame.list_text, cursor=frame.cursor, selection=True)
             if result:
                 frame.items, frame.cursor = result.items, result.cursor
             return
@@ -206,7 +214,7 @@ class Session:
             '/setup — configure chat, embeddings and database settings',
             '/back — return to the previous screen',
             '/menu — return to the main menu',
-            '/quit — exit the client; server jobs continue (x at the main menu)',
+            '/quit — exit the client; saved jobs remain on the server (x at the main menu)',
             '/jobs — inspect processing status',
             '/show — inspect the latest capture',
             '/undo — retract derived changes from the latest capture',
@@ -222,8 +230,11 @@ class Session:
         return bool(context.concept_id or context.subject_id or context.concept_ids)
 
     def choose(self, operation, after, text=''):
-        result = self.invoke(operation, text)
+        result = self.invoke(operation, text, selection=True)
         if result is None:
+            return
+        if not result.items and not result.cursor and not operation.startswith('jobs.list.'):
+            self.write('No matching items. Use /back or choose another activity.')
             return
         kinds = {'bank.resources': 'resource', 'bank.subjects': 'subject', 'scope.subjects': 'subject', 'chat.recent': 'conversation', 'suggestion.list': 'suggestion', 'review.history': 'review_session'}
         kind = 'job' if operation.startswith('jobs.list.') else kinds.get(operation, 'concept')
@@ -277,6 +288,13 @@ class Session:
             self.invoke('reflect.run')
         elif destination == 'reflect.both':
             self.ask('reflect.since', 'From ISO timestamp with timezone (blank: beginning):', context=result.context)
+        elif destination == 'subject.add':
+            added = self.invoke('subject.add_member', context=result.context)
+            if added:
+                self.push('subject', added.context)
+        elif destination == 'revision_history':
+            self.push('concept', result.context)
+            self.invoke('bank.history')
         elif destination == 'ask.clarify':
             self.ask('clarify.start', 'What would you like to clarify?', context=result.context)
         elif item.kind == 'subject':
@@ -307,7 +325,7 @@ class Session:
                 if result:
                     self.push('reflection', result.context)
             return
-        if frame.operation in ('capture.message', 'gap.answer') and (frame.context.request_id is None or old_draft != value):
+        if frame.operation in ('capture.message', 'gap.answer', 'clarify.explain') and (frame.context.request_id is None or old_draft != value):
             frame.context = replace(frame.context, request_id=uuid4())
         result = self.invoke(frame.operation, value)
         if result is None:
@@ -353,9 +371,22 @@ class Session:
         elif operation in ('chat.recent', 'chat.find'):
             # Both can page through all conversations; no silent first-page-only search.
             self.choose('chat.recent', 'capture_input')
+        elif operation == 'subject.create':
+            self.ask('subject.create', 'Subject name:', after='subject')
+        elif operation == 'subject.add':
+            self.current.context = replace(self.current.context, membership_subject_id=self.current.context.subject_id)
+            self.choose('scope.concepts', 'subject.add')
+        elif operation.startswith('search.'):
+            self.last_context = replace(self.last_context, search_mode=operation.split('.')[1])
+            self.current.context = replace(self.current.context, search_mode=operation.split('.')[1])
+            self.write('Search mode updated.')
+            self.stack.pop()
+            self.current.context = replace(self.current.context, search_mode=operation.split('.')[1])
+        elif operation == 'bank.history' and not self.current.context.concept_id:
+            self.choose('bank.reflection_changes' if self.current.screen == 'reflection' else 'bank.concepts', 'revision_history')
         elif operation == 'bank.search':
             self.ask('bank.search', 'Search your bank:')
-        elif operation in ('bank.concepts', 'bank.subjects', 'bank.resources', 'bank.recents', 'bank.timeline', 'bank.related', 'bank.subject_members'):
+        elif operation in ('bank.concepts', 'bank.archived', 'bank.subjects', 'bank.resources', 'bank.recents', 'bank.timeline', 'bank.related', 'bank.subject_members'):
             self.choose(operation, 'concept')
         elif operation == 'bank.select':
             self.choose('bank.concepts', 'concept')

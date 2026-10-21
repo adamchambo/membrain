@@ -12,6 +12,7 @@ class TaskCreate(BaseModel):
     concept_ids: list[UUID] = Field(default_factory=list, max_length=20, description="Recorded scope, or empty for an explicit new teaching/clarification question.")
     resource_ids: list[UUID] = Field(default_factory=list, max_length=10)
     question: str = Field(default="", max_length=4000)
+    parent_artifact_id: UUID | None = Field(default=None, description="Completed prior learning result used as dialogue context.")
 
 
     @model_validator(mode="after")

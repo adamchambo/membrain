@@ -15,16 +15,18 @@ This repository contains a FastAPI server, PostgreSQL with pgvector, a backgroun
 
 From this checkout, run `./start`, or run `/Users/adam/projects/membrain/start` from
 any directory. It loads `.env`, starts the existing native PostgreSQL cluster if
-needed, applies migrations, starts the local API and a session worker, and opens
+needed, applies migrations, starts a persistent local API and worker, and opens
 the interactive CLI. Logs go to ignored `.local/logs/`.
 
 `./start setup` opens the wizard instead of the main menu. `--port 8001` selects a
 different local API port; `--no-setup` skips automatic first-run setup. An existing
 Membrain API on the selected port is reused, and its migrations are left alone.
 
-Exiting the CLI or interrupting the launcher stops only API/worker processes owned
-by that launcher. PostgreSQL remains running. Queued work remains saved for the next
-worker run. The launcher uses this Mac's existing `.local/postgres` and `.venv`; it
+Exiting the CLI leaves the managed API and worker running so queued jobs continue.
+Run `./start status` to inspect them and `./start stop` to stop only this checkout's
+managed services. Pass the same `--port` value when using another port. A second
+`./start` connects another client to the healthy stack. PostgreSQL remains running.
+If a service was started outside this launcher, stop it through its original owner. The launcher uses this Mac's existing `.local/postgres` and `.venv`; it
 doesn't create a new database or install packages. The Compose alternative below
 uses a separate container database.
 
@@ -95,3 +97,18 @@ values take precedence. Existing CLI resume IDs are read from the old `oracle`
 state directory until first save into `membrain`. Legacy `oracle.bank.v1` exports
 remain importable. Database roles, database names and Docker volume identities
 are retained so the rename does not create an empty knowledge bank.
+
+## Reliable learning workflows
+
+Chat setup offers a standard profile and an explicit Qwen3 fast profile. Only the
+Qwen3 profile adds `/no_think`; generation is bounded and provider timeouts are
+reported separately from invalid output. Automatic capture banks the user's
+supporting sentences verbatim, preserving their qualifiers. Follow-ups append
+source wording; Edit explanation explicitly replaces the current explanation.
+Generated paraphrases remain unapplied drafts in provenance.
+
+Clarification follow-ups retain bounded prior user/assistant turns. Save what I
+learned creates a capture when no concept exists and a revision when one is selected.
+Explore supports hybrid/text/meaning search, archived concepts and restoration,
+subject creation and membership. Terminal result lists use arrow selection, and
+background completion messages appear without discarding in-progress input.

@@ -25,4 +25,5 @@ class ReflectionCommands:
             return value
         result = self.execute(self.subjects.reflect, subject_id=context.subject_id,
                               since=timestamp(context.since), until=timestamp(context.until))
-        return Result('Recorded changes and review evidence; unreviewed does not mean unknown.', context, payload=data(result))
+        return Result('Recorded changes and review evidence; unreviewed does not mean unknown.',
+                      replace(context, reflection_concept_ids=tuple(dict.fromkeys(row.concept_id for row in result.revisions))), payload=data(result))

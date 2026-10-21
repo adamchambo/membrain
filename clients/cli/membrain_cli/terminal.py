@@ -1,26 +1,53 @@
-"""Shared terminal menus with arrow selection and typed command support."""
+"""Shared arrow menus and text input, preserving drafts during background output."""
+import asyncio
+from contextlib import nullcontext
 import os
 import sys
 
 
 def interactive(read=input, write=print):
-    """Enable highlighting for real terminal read/write, retaining plain IO for scripts."""
+    """Enable terminal widgets for real read/write IO; retain plain redirected input."""
     return (read is input and write is print and sys.stdin.isatty() and
             sys.stdout.isatty() and os.environ.get('TERM') != 'dumb')
 
 
-def select(title, choices, read=input, write=print, prompt='Choose: '):
-    """Show title and (key, label) choices; use read/write for plain IO and prompt for input."""
+def select(title, choices, read=input, write=print, prompt='Choose: ', *, tick=None):
+    """Select key/label choices under title; read/write support scripts, tick drains background work."""
     if not interactive(read, write):
         write('\n' + title)
         for key, label in choices:
             write(f'{key}. {label}')
         return read(prompt)
-    return highlighted(title, choices, prompt)
+    return highlighted(title, choices, prompt, tick=tick)
 
 
-def highlighted(title, choices, prompt='Choose: ', *, input=None, output=None):
-    """Render title and key/label choices; optional toolkit input/output support terminal tests."""
+def _prompt(session, message, tick=None, *, managed_output=True):
+    """Prompt with session/message; optionally call tick while safely redrawing managed output."""
+    from prompt_toolkit.patch_stdout import patch_stdout
+
+    async def refresh():
+        while True:
+            await asyncio.sleep(.25)
+            tick()
+
+    def ready():
+        if tick:
+            session.app.create_background_task(refresh())
+
+    with patch_stdout(raw=True) if managed_output else nullcontext():
+        return session.prompt(message, pre_run=ready)
+
+
+def read_text(prompt, read=input, write=print, *, tick=None):
+    """Read text at prompt with injected read/write fallback and optional background tick."""
+    if not interactive(read, write):
+        return read(prompt)
+    from prompt_toolkit import PromptSession
+    return _prompt(PromptSession(), prompt, tick)
+
+
+def highlighted(title, choices, prompt='Choose: ', *, input=None, output=None, tick=None):
+    """Render title and key/label choices; input/output inject toolkit terminals, tick handles events."""
     from prompt_toolkit import PromptSession
     from prompt_toolkit.key_binding import KeyBindings
     from prompt_toolkit.styles import Style
@@ -50,4 +77,4 @@ def highlighted(title, choices, prompt='Choose: ', *, input=None, output=None):
 
     session = PromptSession(input=input, output=output, key_bindings=keys,
                             style=Style.from_dict({'selected': 'reverse bold', 'hint': 'italic'}))
-    return session.prompt(message)
+    return _prompt(session, message, tick, managed_output=output is None)

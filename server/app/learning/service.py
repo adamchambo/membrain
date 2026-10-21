@@ -29,7 +29,26 @@ def create(db, data):
             resource = db.scalar(select(Resource).where(Resource.id == resource_id).with_for_update())
             if not resource or resource.archived_at:
                 raise NotFound("Active resource not found")
-        item = LearningArtifact(kind=data.kind, inputs=data.model_dump(mode="json"))
+        inputs = data.model_dump(mode="json")
+        if data.parent_artifact_id:
+            parent = db.get(LearningArtifact, data.parent_artifact_id)
+            if not parent:
+                raise NotFound("Previous learning result not found")
+            if parent.output is None:
+                raise Conflict("The previous explanation is still processing. Wait for its result, then retry your follow-up.")
+            history = parent.inputs.get("history", []) + [
+                {"role": "user", "content": parent.inputs.get("question", "")[:4000]},
+                {"role": "assistant", "content": parent.output.get("content", "")[:4000]}]
+            recent = []
+            remaining = 12000
+            for turn in reversed(history[-6:]):
+                if not remaining:
+                    break
+                content = turn["content"][-remaining:]
+                recent.append({"role": turn["role"], "content": content})
+                remaining -= len(content)
+            inputs["history"] = list(reversed(recent))
+        item = LearningArtifact(kind=data.kind, inputs=inputs)
         db.add(item)
         db.flush()
         job_id = enqueue(db, dedup_key=f"learning:{item.id}", kind="learning", arguments={"artifact_id": str(item.id)})
@@ -40,7 +59,7 @@ def prepare(db, arguments):
     item = db.get(LearningArtifact, UUID(arguments["artifact_id"]))
     if not item:
         raise NotFound("Learning artifact not found")
-    context = {"concepts": [], "source_chunks": [], "review_evidence": []}
+    context = {"concepts": [], "source_chunks": [], "review_evidence": [], "dialogue": item.inputs.get("history", [])}
     for raw_id in item.inputs["concept_ids"]:
         concept_id = UUID(raw_id)
         concept = db.get(Concept, concept_id)
@@ -67,12 +86,25 @@ def generate(prepared):
     client = get_chat_client()
     payload = json.dumps({"request": prepared["request"], "context": prepared["context"],
                           "output_schema": LearningOutput.model_json_schema()}, default=str)
+    omitted = 0
     try:
-        result = LearningOutput.model_validate_json(client.generate(SYSTEM, payload))
-    except ValidationError as exc:
+        document = json.loads(client.generate(SYSTEM, payload))
+        # An unscoped teaching request has no authority to propose changes to saved
+        # concepts. Retain valid teaching content while discarding this optional
+        # channel before validating IDs; scoped requests remain strictly validated.
+        if not prepared["context"]["concepts"] and isinstance(document, dict):
+            suggestions = document.get("suggestions", [])
+            if isinstance(suggestions, list) and suggestions:
+                omitted = len(suggestions)
+                document["suggestions"] = []
+                if isinstance(document.get("uncertainty", []), list):
+                    document["uncertainty"] = document.get("uncertainty", []) + [
+                        "No saved concepts were selected; concept-change suggestions were not retained."]
+        result = LearningOutput.model_validate(document)
+    except (ValidationError, ValueError) as exc:
         raise Unavailable("The model returned an invalid learning result") from exc
     validate_evidence(result, prepared)
-    return {"result": result.model_dump(mode="json"), "model_key": client.model_key}
+    return {"result": result.model_dump(mode="json"), "model_key": client.model_key, "omitted_suggestions": omitted}
 
 
 def validate_evidence(output, prepared):
@@ -96,7 +128,8 @@ def apply(db, prepared, output):
     item = db.scalar(select(LearningArtifact).where(LearningArtifact.id == prepared["artifact_id"]).with_for_update())
     if item.output is None:
         # Retain the exact input context used for inference, including revision IDs.
-        item.inputs = {**item.inputs, "context": json.loads(json.dumps(prepared["context"], default=str))}
+        item.inputs = {**item.inputs, "context": json.loads(json.dumps(prepared["context"], default=str)),
+                       "omitted_suggestions": output.get("omitted_suggestions", 0)}
         item.output, item.model_key, item.prompt_version = output["result"], output["model_key"], VERSION
         for payload in output["result"]["suggestions"]:
             db.add(LearningSuggestion(artifact_id=item.id, kind=payload["kind"], payload=payload))

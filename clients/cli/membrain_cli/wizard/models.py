@@ -1,4 +1,6 @@
 """Provider-first prompts; keys are submitted to the server, never stored locally."""
+import json
+from urllib.request import Request, urlopen
 import membrain_sdk as sdk
 from ..terminal import select
 
@@ -16,6 +18,18 @@ def choose(read, title, options, write=print):
             raise Cancelled
         if value.isascii() and value.isdecimal() and 1 <= int(value) <= len(options):
             return options[int(value) - 1][1]
+
+
+def available_models(base: str, capability: str) -> list[str]:
+    """List compatible model IDs from base; capability filters chat versus embedding names."""
+    try:
+        with urlopen(Request(base.rstrip('/') + '/models'), timeout=2) as response:
+            payload = json.loads(response.read(1024 * 1024))
+        ids = [row['id'] for row in payload.get('data', []) if isinstance(row, dict) and isinstance(row.get('id'), str)]
+        return list(dict.fromkeys(identifier for identifier in ids
+                                 if ('embed' in identifier.lower()) == (capability == 'embeddings')))
+    except (OSError, ValueError, TypeError):
+        return []
 
 
 def endpoint(read, secret, capability, write=print):
@@ -38,7 +52,10 @@ def endpoint(read, secret, capability, write=print):
     else:
         url = read(f'OpenAI-compatible {capability} endpoint URL (full URL): ').strip()
         key = None
-    model = read('Model name (as installed or listed by your provider): ').strip()
+    installed = available_models(base, capability) if source == 'local' else []
+    model = choose(read, 'Available local models', [(identifier, identifier) for identifier in installed] + [('Enter a model name manually', '')], write) if installed else ''
+    if not model:
+        model = read('Model name (as installed or listed by your provider): ').strip()
     if source != 'local':
         key = secret('Provider API key' + (' (blank if not required)' if source == 'custom' else '') + ': ').strip() or None
         if source == 'cloud' and not key:
@@ -49,7 +66,10 @@ def endpoint(read, secret, capability, write=print):
 def chat(read, secret, write=print):
     """Collect chat settings with visible read, hidden secret and write output."""
     url, model, key = endpoint(read, secret, 'chat', write)
-    return sdk.Endpoint(url=url, model=model, api_key=key)
+    profile = choose(read, 'Chat generation profile', (
+        ('Standard provider behavior', 'standard'),
+        ('Qwen3 fast — skip extended thinking', 'qwen3_fast')), write)
+    return sdk.ChatEndpoint(url=url, model=model, api_key=key, profile=profile)
 
 
 def embeddings(read, secret, write=print):

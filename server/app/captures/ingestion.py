@@ -144,12 +144,39 @@ def validate_sources(output: CaptureOutput, raw_text: str, context: dict) -> Non
         raise Unavailable("The result referenced a clarification outside its supplied context")
 
 
+def source_explanation(raw_text: str, excerpts: list[str], previous: str = "") -> str:
+    """Keep complete user sentences containing excerpts, appending to previous saved wording."""
+    ranges = []
+    for excerpt in excerpts:
+        start = raw_text.index(excerpt)
+        end = start + len(excerpt)
+        left = list(re.finditer(r"[.!?]\s+|\n+", raw_text[:start]))
+        start = left[-1].end() if left else 0
+        if raw_text[end - 1] not in ".!?":
+            right = re.search(r"[.!?](?=\s|$)|\n", raw_text[end:])
+            end = end + right.start() + (1 if right.group() != "\n" else 0) if right else len(raw_text)
+        ranges.append((start, end))
+    merged = []
+    for start, end in sorted(ranges):
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(end, merged[-1][1]))
+        else:
+            merged.append((start, end))
+    pieces = [previous] if previous else []
+    for start, end in merged:
+        phrase = raw_text[start:end].strip()
+        if phrase and phrase not in previous:
+            pieces.append(phrase)
+    return "\n\n".join(pieces)
+
+
 def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: dict, model_key: str, prompt_version: str):
     """Caller holds the capture/work locks and owns this atomic transaction."""
     validate_sources(output, capture.raw_text, context)
     previous_by_id = {UUID(row["id"]): UUID(row["revision_id"]) for row in context["existing_concepts"]}
     # Lock targets in a stable order before making any changes.
     target_ids = sorted({x.existing_concept_id for x in output.understandings if x.existing_concept_id})
+    previous_bodies = {}
     targets = {row.id: row for row in db.scalars(select(Concept).where(Concept.id.in_(target_ids))
                                                .order_by(Concept.id).with_for_update()).all()}
     for target_id in target_ids:
@@ -157,13 +184,21 @@ def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: 
             ExplanationRevision.retracted_at.is_(None)).order_by(ExplanationRevision.revision_number.desc()).limit(1))
         if target_id not in targets or targets[target_id].archived_at or not latest or latest.id != previous_by_id[target_id]:
             raise DeferredWork("Concept context changed; regenerate using its latest explanation")
+        previous_bodies[target_id] = latest.body
+    applied_bodies = [source_explanation(capture.raw_text, item.source_excerpts, previous_bodies.get(item.existing_concept_id, ""))
+                      for item in output.understandings]
     payload = {**output.model_dump(mode="json"),
-               "context_revision_ids": {str(key): str(previous_by_id[key]) for key in target_ids}}
+               "context_revision_ids": {str(key): str(previous_by_id[key]) for key in target_ids},
+               "application_policy": "verbatim-user-sentences.v1"}
+    for row, body in zip(payload["understandings"], applied_bodies):
+        if row["explanation_text"] != body:
+            row["unapplied_model_draft"] = row["explanation_text"]
+        row["explanation_text"] = body
     proposal = AIProposal(capture_id=capture.id, kind="formatting", payload=payload,
                           model_key=model_key, prompt_version=prompt_version, status="accepted", application_mode="automatic")
     db.add(proposal)
     db.flush()
-    for item in output.understandings:
+    for item, body in zip(output.understandings, applied_bodies):
         concept = targets.get(item.existing_concept_id)
         if concept is None:
             concept = Concept(title=item.title)
@@ -171,7 +206,9 @@ def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: 
             db.flush()
         number = db.scalar(select(func.max(ExplanationRevision.revision_number)).where(ExplanationRevision.concept_id == concept.id)) or 0
         revision = ExplanationRevision(concept_id=concept.id, capture_id=capture.id, proposal_id=proposal.id,
-            revision_number=number + 1, body=item.explanation_text, origin="ai_formatted_user_input")
+            revision_number=number + 1,
+            body=body,
+            origin="ai_formatted_user_input")
         db.add(revision)
         if db.get(CaptureConcept, (capture.id, concept.id)) is None:
             db.add(CaptureConcept(capture_id=capture.id, concept_id=concept.id))

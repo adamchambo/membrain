@@ -17,7 +17,7 @@ class LearningCommands:
             return self.task('clarification', text, context)
         if operation == 'clarify.explain':
             if not context.concept_id:
-                raise ClientError('Choose one concept before saving a revised explanation.')
+                return self._capture('capture.message', text, context, None)
             self.execute(self.knowledge.add_revision, context.concept_id, sdk.RevisionCreate(explanation_text=text))
             return Result('Saved your updated understanding as a new revision.', context)
         if operation == 'clarify.unresolved':
@@ -38,6 +38,8 @@ class LearningCommands:
             return replace(result, message=reason + '\n' + result.message)
         if operation == 'artifact.inspect' or operation == 'suggestion.list':
             artifact = self.execute(self.learning.artifact_detail, required(context.artifact_id, 'a learning result'))
+            if artifact.output is None:
+                raise ClientError('This result is still processing. Use /jobs to check progress.')
             ids = tuple(UUID(value) for value in artifact.inputs.get('concept_ids', []))
             context = replace(context, subject_id=None, concept_ids=ids, concept_id=ids[0] if len(ids) == 1 else None, question=artifact.inputs.get('question', ''))
             rows = tuple(Item(row.id, 'suggestion', row.payload.rationale, f'{row.payload.kind}; {row.payload.evidence}; {row.status}') for row in artifact.suggestions if row.status == 'pending')

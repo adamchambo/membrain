@@ -678,6 +678,63 @@
         "title": "CaptureReceipt",
         "type": "object"
       },
+      "ChatEndpoint": {
+        "additionalProperties": false,
+        "properties": {
+          "api_key": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "max_tokens": {
+            "default": 2048,
+            "maximum": 8192.0,
+            "minimum": 64.0,
+            "title": "Max Tokens",
+            "type": "integer"
+          },
+          "model": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "profile": {
+            "default": "standard",
+            "enum": [
+              "standard",
+              "qwen3_fast"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "temperature": {
+            "default": 0.2,
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Temperature",
+            "type": "number"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "model"
+        ],
+        "title": "ChatEndpoint",
+        "type": "object"
+      },
       "ChunkPage": {
         "properties": {
           "items": {
@@ -1268,40 +1325,6 @@
           "profile"
         ],
         "title": "EmbeddingEndpoint",
-        "type": "object"
-      },
-      "Endpoint": {
-        "additionalProperties": false,
-        "properties": {
-          "api_key": {
-            "anyOf": [
-              {
-                "format": "password",
-                "type": "string",
-                "writeOnly": true
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Api Key"
-          },
-          "model": {
-            "maxLength": 255,
-            "minLength": 1,
-            "title": "Model",
-            "type": "string"
-          },
-          "url": {
-            "title": "Url",
-            "type": "string"
-          }
-        },
-        "required": [
-          "url",
-          "model"
-        ],
-        "title": "Endpoint",
         "type": "object"
       },
       "ErrorResponse": {
@@ -3246,7 +3269,7 @@
           "chat": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Endpoint"
+                "$ref": "#/components/schemas/ChatEndpoint"
               },
               {
                 "type": "null"
@@ -3655,6 +3678,19 @@
             ],
             "title": "Kind",
             "type": "string"
+          },
+          "parent_artifact_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Completed prior learning result used as dialogue context.",
+            "title": "Parent Artifact Id"
           },
           "question": {
             "default": "",

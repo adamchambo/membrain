@@ -25,6 +25,12 @@ class Endpoint(BaseModel):
         return value
 
 
+class ChatEndpoint(Endpoint):
+    profile: Literal["standard", "qwen3_fast"] = "standard"
+    max_tokens: int = Field(default=2048, ge=64, le=8192)
+    temperature: float = Field(default=0.2, ge=0, le=2)
+
+
 class EmbeddingEndpoint(Endpoint):
     profile: Profile
 
@@ -33,7 +39,7 @@ class SetupConfiguration(BaseModel):
     model_config = ConfigDict(extra="forbid")
     database_url: SecretStr | None = None
     database_mode: Literal["bundled", "existing"] = "existing"
-    chat: Endpoint | None = None
+    chat: ChatEndpoint | None = None
     embeddings: EmbeddingEndpoint | None = None
 
 

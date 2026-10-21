@@ -13,11 +13,32 @@ from . import data, required
 
 class BankCommands:
     def _bank(self, operation, text, context, cursor):
+        if operation == 'subject.create':
+            row = self.execute(self.subjects.create_subject, sdk.SubjectCreate(title=text))
+            return Result('Subject created.', context.scope(subject=row.id, label=row.title))
+        if operation == 'subject.add_member':
+            identifier = required(context.membership_subject_id, 'a subject')
+            self.execute(self.subjects.add_membership, identifier, required(context.concept_id, 'a concept'))
+            return Result('Concept added to the subject.', replace(context.scope(subject=identifier), membership_subject_id=None))
         if operation == 'bank.search':
-            result = self.execute(self.discovery.search, q=text, mode='text', limit=100)
-            return Result('Search results:', context, tuple(Item(row.id, row.type, row.title, row.match_reason) for row in result.items))
-        if operation in ('bank.concepts', 'scope.concepts'):
-            page = self.concepts(cursor)
+            mode = context.search_mode if self.readiness().settings.embeddings.configured else 'text'
+            message = 'Search results:'
+            try:
+                result = self.execute(self.discovery.search, q=text, mode=mode, limit=100)
+            except ClientError:
+                if mode == 'text':
+                    raise
+                result = self.execute(self.discovery.search, q=text, mode='text', limit=100)
+                message = 'Meaning search is unavailable; showing exact text matches. Check model setup.'
+            return Result(message, context, tuple(Item(row.id, row.type, row.title, row.match_reason) for row in result.items))
+        if operation == 'bank.reflection_changes':
+            rows = [self.execute(self.knowledge.get_concept, identifier) for identifier in context.reflection_concept_ids]
+            return Result('Concepts changed in this reflection:', context, tuple(Item(row.id, 'concept', row.title) for row in rows))
+        if operation in ('bank.concepts', 'scope.concepts', 'bank.archived'):
+            page = (self.execute(self.knowledge.list_concepts, limit=100, cursor=cursor, include_archived=True)
+                    if operation == 'bank.archived' else self.concepts(cursor))
+            if operation == 'bank.archived':
+                page.items = [row for row in page.items if row.archived_at is not None]
             return Result('Saved concepts:', context, tuple(Item(row.id, 'concept', row.title) for row in page.items), cursor=page.next_cursor)
         if operation in ('bank.subjects', 'scope.subjects'):
             page = self.execute(self.subjects.list_subjects, limit=500)
@@ -28,7 +49,7 @@ class BankCommands:
             return Result('Subject concepts (first 100; review can use the full supported scope):', context, tuple(Item(row.id, 'concept', row.title) for row in rows))
         if operation == 'bank.resources':
             page = self.execute(self.management.list_resources, cursor=cursor, limit=25)
-            return Result('Resources:', context, tuple(Item(row.id, 'resource', row.title or row.uri) for row in page.items), cursor=page.next_cursor)
+            return Result('Resources:', context, tuple(Item(row.id, 'resource', row.title or row.uri, 'Archived' if row.archived_at else '') for row in page.items), cursor=page.next_cursor)
         if operation in ('bank.recents', 'bank.timeline'):
             function = self.discovery.recents if operation.endswith('recents') else self.discovery.timeline
             page = self.execute(function, cursor=cursor, limit=25)
@@ -81,10 +102,10 @@ class BankCommands:
             resource = self.execute(self.knowledge.create_resource, sdk.ResourceCreate(kind='other', uri=text))
             self.execute(self.knowledge.attach_resource, required(context.concept_id, 'a concept'), sdk.ResourceLink(resource_id=resource.id))
             return Result('Resource attached; saving a resource does not mark it learned.', context)
-        if operation == 'bank.archive':
+        if operation in ('bank.archive', 'bank.restore'):
             if context.item_kind == 'resource':
-                self.execute(self.management.patch_resource, required(context.resource_id, 'a resource'), sdk.ResourcePatch(archived=True))
+                self.execute(self.management.patch_resource, required(context.resource_id, 'a resource'), sdk.ResourcePatch(archived=operation == 'bank.archive'))
             else:
-                self.execute(self.management.patch_concept, required(context.concept_id, 'a concept'), sdk.ConceptPatch(archived=True))
-            return Result('Archived the item; history remains.', context)
+                self.execute(self.management.patch_concept, required(context.concept_id, 'a concept'), sdk.ConceptPatch(archived=operation == 'bank.archive'))
+            return Result('Archived the item; history remains.' if operation == 'bank.archive' else 'Restored the item.', context)
         raise ClientError('Unknown bank action.')

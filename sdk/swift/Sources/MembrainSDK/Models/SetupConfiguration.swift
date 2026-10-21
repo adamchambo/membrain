@@ -13,12 +13,12 @@ public struct SetupConfiguration: Sendable, Codable {
         case bundled = "bundled"
         case existing = "existing"
     }
-    public var chat: Endpoint?
+    public var chat: ChatEndpoint?
     public var databaseMode: DatabaseMode? = .existing
     public var databaseUrl: String?
     public var embeddings: EmbeddingEndpoint?
 
-    public init(chat: Endpoint? = nil, databaseMode: DatabaseMode? = .existing, databaseUrl: String? = nil, embeddings: EmbeddingEndpoint? = nil) {
+    public init(chat: ChatEndpoint? = nil, databaseMode: DatabaseMode? = .existing, databaseUrl: String? = nil, embeddings: EmbeddingEndpoint? = nil) {
         self.chat = chat
         self.databaseMode = databaseMode
         self.databaseUrl = databaseUrl

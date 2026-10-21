@@ -32,6 +32,9 @@ class Context:
     question: str = ''
     since: str = ''
     until: str = ''
+    search_mode: str = 'hybrid'
+    membership_subject_id: UUID | None = None
+    reflection_concept_ids: tuple[UUID, ...] = ()
 
     def scope(self, *, concept: UUID | None = None, subject: UUID | None = None,
               label: str = '') -> Context:

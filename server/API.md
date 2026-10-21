@@ -15,7 +15,9 @@ authorization, public hosting and device sync are not implemented.
   `database_url` is private; `database_mode` is `bundled` or `existing` PostgreSQL.
   `chat` and `embeddings` specify full endpoint URL, served model and optional key.
   Embeddings also require a profile: pinned revision, dimensions, task prefixes and
-  L2 normalization. Omitted providers become unconfigured in the private file.
+  L2 normalization. Omitted providers retain their settings; explicit null disables
+  a provider. Chat also accepts `profile` (`standard` or `qwen3_fast`), `max_tokens`
+  (64–8192; default 2048) and `temperature` (0–2; default 0.2).
   Environment variables still override the file; the response lists overridden keys.
 - `POST /api/v1/setup/validate`: `capabilities` chooses database/chat/embeddings.
   Probes return readiness, never provider error bodies or credentials.
@@ -110,6 +112,8 @@ labelled `sources_compared` only when matching supplied citations exist; that va
 provenance, not the truth/relevance of a model's interpretation. No web fact search
 or automatic reliability rating is performed. No sources means `not_verified`.
 
+For teaching without saved concepts, concept-change suggestions are omitted and an uncertainty note explains why; the teaching answer remains available. Scoped suggestions still require valid concept references.
+
 Suggestions are correction, possible gap, or relationship. Gap suggestions remain
 `unrecorded`/`uncertain` and require a diagnostic question. They do not establish a
 deficit. `POST /learning-suggestions/{id}/decision` accepts `action` adopt/dismiss and
@@ -151,3 +155,16 @@ values still take precedence. The CLI never reads existing provider secrets back
 Question-based clarification, lessons, examples and textual diagrams may use an
 empty concept scope with a nonempty question. Gap suggestions and factual checks
 still require recorded concepts. Generated answers remain learning artifacts.
+
+## Clarification continuity and capture fidelity
+
+Learning-task requests may include `parent_artifact_id`. A missing parent is
+rejected; a pending parent returns conflict so clients can retry after completion.
+The server records up to six prior turns and 12000 characters in task inputs, and
+supplies them as generated conversational context. Client-supplied history fields
+are not accepted. This uses the existing JSON inputs and needs no new migration.
+
+Automatic capture explanations use complete supporting user sentences. Existing
+explanations retain their wording and append new source sentences. The automatic
+proposal records the applied text and labels any model paraphrase an unapplied
+draft. Explicit revision endpoints retain their replacement semantics.

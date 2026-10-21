@@ -21,4 +21,7 @@ def get_chat_client() -> ChatClient:
     model = setting("MEMBRAIN_CHAT_MODEL")
     if not url or not model:
         raise NotConfigured("A conversation model is not configured")
-    return CompatibleChatClient(url, model, setting("MEMBRAIN_CHAT_API_KEY"))
+    return CompatibleChatClient(url, model, setting("MEMBRAIN_CHAT_API_KEY"),
+                                profile=setting("MEMBRAIN_CHAT_PROFILE", "standard"),
+                                max_tokens=int(setting("MEMBRAIN_CHAT_MAX_TOKENS", "2048")),
+                                temperature=float(setting("MEMBRAIN_CHAT_TEMPERATURE", "0.2")))

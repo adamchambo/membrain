@@ -66,6 +66,10 @@ def save_settings_locked(data: SetupConfiguration, *, allow_database_change: boo
         settings[url_key] = endpoint.url if endpoint else ""
         settings[f"MEMBRAIN_{name}_MODEL"] = endpoint.model if endpoint else ""
         settings[f"MEMBRAIN_{name}_API_KEY"] = endpoint.api_key.get_secret_value() if endpoint and endpoint.api_key else ""
+    if "chat" in data.model_fields_set:
+        settings["MEMBRAIN_CHAT_PROFILE"] = data.chat.profile if data.chat else "standard"
+        settings["MEMBRAIN_CHAT_MAX_TOKENS"] = str(data.chat.max_tokens if data.chat else 2048)
+        settings["MEMBRAIN_CHAT_TEMPERATURE"] = str(data.chat.temperature if data.chat else 0.2)
     if "embeddings" in data.model_fields_set and data.embeddings:
         p = data.embeddings.profile
         if p.model != data.embeddings.model:

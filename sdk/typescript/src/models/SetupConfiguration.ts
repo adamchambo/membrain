@@ -20,13 +20,13 @@ import {
     EmbeddingEndpointToJSON,
     EmbeddingEndpointToJSONTyped,
 } from './EmbeddingEndpoint.js';
-import type { Endpoint } from './Endpoint.js';
+import type { ChatEndpoint } from './ChatEndpoint.js';
 import {
-    EndpointFromJSON,
-    EndpointFromJSONTyped,
-    EndpointToJSON,
-    EndpointToJSONTyped,
-} from './Endpoint.js';
+    ChatEndpointFromJSON,
+    ChatEndpointFromJSONTyped,
+    ChatEndpointToJSON,
+    ChatEndpointToJSONTyped,
+} from './ChatEndpoint.js';
 
 /**
  * 
@@ -37,7 +37,7 @@ export interface SetupConfiguration {
     /**
      * 
      */
-    chat?: Endpoint | null;
+    chat?: ChatEndpoint | null;
     /**
      * 
      */
@@ -80,7 +80,7 @@ export function SetupConfigurationFromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'chat': json['chat'] === undefined ? undefined : json['chat'] === null ? null : EndpointFromJSON(json['chat']),
+        'chat': json['chat'] === undefined ? undefined : json['chat'] === null ? null : ChatEndpointFromJSON(json['chat']),
         'databaseMode': json['database_mode'] == null ? undefined : json['database_mode'],
         'databaseUrl': json['database_url'] === undefined ? undefined : json['database_url'] === null ? null : json['database_url'],
         'embeddings': json['embeddings'] === undefined ? undefined : json['embeddings'] === null ? null : EmbeddingEndpointFromJSON(json['embeddings']),
@@ -98,7 +98,7 @@ export function SetupConfigurationToJSONTyped(value?: SetupConfiguration | null,
 
     return {
         
-        'chat': EndpointToJSON(value['chat']),
+        'chat': ChatEndpointToJSON(value['chat']),
         'database_mode': value['databaseMode'],
         'database_url': value['databaseUrl'],
         'embeddings': EmbeddingEndpointToJSON(value['embeddings']),

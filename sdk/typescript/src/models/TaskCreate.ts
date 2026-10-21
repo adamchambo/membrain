@@ -28,6 +28,10 @@ export interface TaskCreate {
      */
     kind: TaskCreateKindEnum;
     /**
+     * Completed prior learning result used as dialogue context.
+     */
+    parentArtifactId?: string | null;
+    /**
      * 
      */
     question?: string;
@@ -72,6 +76,7 @@ export function TaskCreateFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         
         'conceptIds': json['concept_ids'] == null ? undefined : json['concept_ids'],
         'kind': json['kind'],
+        'parentArtifactId': json['parent_artifact_id'] === undefined ? undefined : json['parent_artifact_id'] === null ? null : json['parent_artifact_id'],
         'question': json['question'] == null ? undefined : json['question'],
         'resourceIds': json['resource_ids'] == null ? undefined : json['resource_ids'],
     };
@@ -90,6 +95,7 @@ export function TaskCreateToJSONTyped(value?: TaskCreate | null, ignoreDiscrimin
         
         'concept_ids': value['conceptIds'],
         'kind': value['kind'],
+        'parent_artifact_id': value['parentArtifactId'],
         'question': value['question'],
         'resource_ids': value['resourceIds'],
     };

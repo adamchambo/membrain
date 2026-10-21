@@ -31,9 +31,10 @@ class TaskCreate(BaseModel):
     """ # noqa: E501
     concept_ids: Optional[Annotated[List[UUID], Field(max_length=20)]] = Field(default=None, description="Recorded scope, or empty for an explicit new teaching/clarification question.")
     kind: StrictStr
+    parent_artifact_id: Optional[UUID] = Field(default=None, description="Completed prior learning result used as dialogue context.")
     question: Optional[Annotated[str, Field(strict=True, max_length=4000)]] = ''
     resource_ids: Optional[Annotated[List[UUID], Field(max_length=10)]] = None
-    __properties: ClassVar[List[str]] = ["concept_ids", "kind", "question", "resource_ids"]
+    __properties: ClassVar[List[str]] = ["concept_ids", "kind", "parent_artifact_id", "question", "resource_ids"]
 
     @field_validator('kind')
     def kind_validate_enum(cls, value):
@@ -81,6 +82,11 @@ class TaskCreate(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # set to None if parent_artifact_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.parent_artifact_id is None and "parent_artifact_id" in self.model_fields_set:
+            _dict['parent_artifact_id'] = None
+
         return _dict
 
     @classmethod
@@ -95,6 +101,7 @@ class TaskCreate(BaseModel):
         _values = {
             "concept_ids": obj.get("concept_ids"),
             "kind": obj.get("kind"),
+            "parent_artifact_id": obj.get("parent_artifact_id"),
             "question": obj.get("question") if obj.get("question") is not None else '',
             "resource_ids": obj.get("resource_ids")
         }

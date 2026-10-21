@@ -32,6 +32,14 @@ MENUS = {
         ("Recent additions and changes", "@bank.recents"),
         ("Learning timeline", "@bank.timeline"),
         ("Browse resources", "@bank.resources"),
+        ("Archived concepts", "@bank.archived"),
+        ("Choose search mode", "search_mode"),
+        ("Create a subject", "@subject.create"),
+    )),
+    "search_mode": Menu("Search mode", (
+        ("Hybrid — words and meaning", "@search.hybrid"),
+        ("Exact text", "@search.text"),
+        ("Meaning only", "@search.semantic"),
     )),
     "bank_results": Menu("Search results", (
         ("Select a concept or resource", "@bank.select"),
@@ -45,12 +53,13 @@ MENUS = {
         ("Review", "formats"),
         ("Investigate possible gaps", "@gap.start"),
     )),
-    "subject": Menu("Selected subject", (("Browse its concepts", "@bank.subject_members"), ("Review this scope", "formats"), ("Investigate possible gaps", "@gap.suggest"), ("Reflect", "@reflect.run"))),
-    "resource": Menu("Selected resource", (("Read saved resource and extracted content", "@bank.read"), ("Archive resource", "@bank.archive"))),
+    "subject": Menu("Selected subject", (("Browse its concepts", "@bank.subject_members"), ("Review this scope", "formats"), ("Investigate possible gaps", "@gap.suggest"), ("Reflect", "@reflect.run"), ("Add a concept to this subject", "@subject.add"))),
+    "resource": Menu("Selected resource", (("Read saved resource and extracted content", "@bank.read"), ("Archive resource", "@bank.archive"), ("Restore resource", "@bank.restore"))),
     "manage": Menu("Manage selected item", (
         ("Attach a resource", "@bank.attach"),
         ("Edit explanation", "@bank.edit"),
         ("Archive item", "@bank.archive"),
+        ("Restore item", "@bank.restore"),
     )),
     "clarify": Menu("Clarify", (
         ("Choose an existing concept", "@clarify.choose"),
@@ -62,7 +71,7 @@ MENUS = {
         ("Explain using familiar concepts", "@learn.familiar"),
         ("Request a worked example", "@learn.example"),
         ("Request a textual diagram", "@learn.diagram"),
-        ("Explain my updated understanding", "@clarify.explain"),
+        ("Save what I learned in my own words", "@clarify.explain"),
         ("Inspect proposed corrections or connections", "@suggestion.list"),
         ("Try a review question", "formats"),
     )),
@@ -140,7 +149,7 @@ MENUS = {
     )),
     "conversations": Menu("Continue a conversation", (
         ("Browse recent conversations", "@chat.recent"),
-        ("Find an older conversation", "@chat.find"),
+        ("Browse older conversations", "@chat.find"),
     )),
     "status": Menu("Processing status", (
         ("Pending or running work", "@jobs.list.pending"),

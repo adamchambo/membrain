@@ -38,7 +38,7 @@ class ReviewCommands:
                 context = replace(context, review_session_id=session.id, concept_ids=tuple(session.concept_ids))
             if operation == 'review.begin':
                 return Result('Review session created.', context)
-            question = self.execute(self.review.next_question, context.review_session_id, _request_timeout=(2.0, 45.0))
+            question = self.execute(self.review.next_question, context.review_session_id, _request_timeout=(2.0, 75.0))
             context = replace(context, question_id=question.id)
             return Result('Answer before viewing the earlier explanation.', context, prompt=question.prompt)
         if operation == 'review.answer':
