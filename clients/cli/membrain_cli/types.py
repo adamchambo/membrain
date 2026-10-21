@@ -24,6 +24,7 @@ class Context:
     suggestion_id: UUID | None = None
     proposal_id: UUID | None = None
     job_id: UUID | None = None
+    turn_id: UUID | None = None
     request_id: UUID | None = None
     mode: str = 'cue_card'
     label: str = ''

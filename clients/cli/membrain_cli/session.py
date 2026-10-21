@@ -1,12 +1,17 @@
 """Terminal state machine with typed results and queued background notifications."""
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
+import time
 from uuid import UUID, uuid4
 from .jobs import Monitor
 from .menus import MENUS
 from . import terminal
 from .output import show
-from .types import Backend, ClientError, Context, Item, Result
+from .types import Backend, ClientError, Context, Item, Job, Result
+
+# Seconds between reply checks, and how long to wait before suggesting the worker may be down.
+POLL_INTERVAL = 0.5
+SLOW_REPLY = 30
 
 
 @dataclass
@@ -25,12 +30,15 @@ class Frame:
 
 class Session:
     def __init__(self, backend: Backend, read=input, write=print, store=None,
-                 api_url='', setup=None, context: Context | None = None, monitor=None):
-        """Inject backend, terminal read/write, optional state store, setup callback and monitor."""
+                 api_url='', setup=None, context: Context | None = None, monitor=None,
+                 start='main', sleep=time.sleep):
+        """Inject backend, terminal read/write, optional state store, setup callback, monitor,
+        first screen ('main' menus or 'chat') and sleep used while waiting for replies."""
         self.backend, self.read, self.write = backend, read, write
         self.store, self.api_url, self.setup = store, api_url, setup
+        self.sleep = sleep
         self.last_context = context or Context()
-        self.stack = [Frame('main', self.last_context)]
+        self.stack = [Frame(start, self.last_context)]
         self.running = True
         self.monitor = monitor or Monitor(backend)
         self.known_jobs = dict(getattr(backend, 'tracked', {}))
@@ -98,14 +106,19 @@ class Session:
 
     def run(self):
         self.write('LOCAL STUB MODE — no server or persistent changes.' if self.backend.is_stub else f'Membrain — local API: {self.api_url}')
-        self.write('Commands: /help, /back, /menu, /quit, /jobs, /setup. Capture: /show, /undo, /history. /retry resends retained input.')
+        if self.current.screen == 'chat':
+            self.write('Talk to Membrain in your own words: explain what you learned, ask for a reminder, a quiz or your gaps.')
+            self.write('Commands: /new, /menu, /history, /undo, /retry, /help, /quit.')
+            self.resume_chat()
+        else:
+            self.write('Commands: /help, /back, /menu, /chat, /quit, /jobs, /setup. Capture: /show, /undo, /history. /retry resends retained input.')
         self.monitor.start()
         try:
             while self.running:
                 self.notifications()
                 self.render()
                 try:
-                    if self.current.screen != 'input' and terminal.interactive(self.read, self.write):
+                    if self.current.screen not in ('input', 'chat') and terminal.interactive(self.read, self.write):
                         frame = self.current
                         menu = MENUS[frame.screen]
                         title = menu.title + (f' — {frame.context.label}' if frame.context.label else '')
@@ -120,8 +133,8 @@ class Session:
                         choices.append(('/back', 'Back'))
                         value = terminal.select('Select a result', choices, self.read, self.write, tick=self.notifications)
                     else:
-                        value = terminal.read_text('> ' if self.current.screen == 'input' else 'Choose: ',
-                                                   self.read, self.write, tick=self.notifications)
+                        prompt = {'input': '> ', 'chat': '\nYou: '}.get(self.current.screen, 'Choose: ')
+                        value = terminal.read_text(prompt, self.read, self.write, tick=self.notifications)
                 except (EOFError, KeyboardInterrupt):
                     break
                 self.handle(value)
@@ -132,6 +145,8 @@ class Session:
 
     def render(self):
         frame = self.current
+        if frame.screen == 'chat':
+            return
         if frame.screen == 'input':
             self.write('\n' + frame.prompt)
             return
@@ -153,6 +168,17 @@ class Session:
             return
         if command == '/menu':
             self.main_menu()
+            return
+        if command == '/chat':
+            self.open_chat()
+            return
+        if command == '/new':
+            self.last_context = replace(self.last_context, conversation_id=None, capture_id=None)
+            self.stack = [Frame('chat', Context())]
+            self.write('Started a new conversation.')
+            return
+        if self.current.screen == 'chat' and command in ('/retry', '/history'):
+            self.retry_turn() if command == '/retry' else self.show_turns(10)
             return
         if command == '/back' or (command == '0' and self.current.screen not in ('input', 'main')):
             if len(self.stack) > 1:
@@ -191,6 +217,9 @@ class Session:
         if not command and self.current.operation not in ('reflect.since', 'reflect.until'):
             self.write('Please enter a value.')
             return
+        if self.current.screen == 'chat':
+            self.converse(value)
+            return
         if self.current.screen == 'input':
             self.submit(value)
             return
@@ -211,6 +240,8 @@ class Session:
         self.write('Help — use ↑/↓ and Enter, type a displayed number, or use these commands:')
         for line in (
             '/help (or help, --help, -h, ? in menus) — show this help',
+            '/chat — talk to Membrain (the conversation continues where you left it)',
+            '/new — start a new conversation',
             '/setup — configure chat, embeddings and database settings',
             '/back — return to the previous screen',
             '/menu — return to the main menu',
@@ -220,10 +251,116 @@ class Session:
             '/undo — retract derived changes from the latest capture',
             '/history — show the current conversation history',
             '/more — show the next page of results',
-            '/retry — resend input retained after a failed request',
+            '/retry — resend input retained after a failed request, or reprocess a failed chat message',
+            'Ctrl-C while Membrain is replying — keep chatting; the reply appears when ready',
             'From your shell: membrain setup opens configuration; membrain --help lists startup options.',
         ):
             self.write(line)
+
+    def open_chat(self):
+        self.stack = [Frame('chat', replace(Context(), conversation_id=self.last_context.conversation_id,
+                                            capture_id=self.last_context.capture_id))]
+        self.write('Back in the conversation.' if self.last_context.conversation_id else 'Talk to Membrain in your own words.')
+
+    def resume_chat(self):
+        """Show the end of the remembered conversation so a pending question has its context."""
+        if not self.current.context.conversation_id:
+            return
+        self.write('Continuing your last conversation (/new starts a fresh one).')
+        self.show_turns(2)
+
+    def show_turns(self, count):
+        context = self.current.context
+        if not context.conversation_id:
+            self.write('No conversation yet.')
+            return
+        try:
+            turns = self.backend.call('turn.history', str(count), context).payload
+        except ClientError as error:
+            self.write(str(error))
+            return
+        for turn in turns:
+            self.write(f"\nYou: {turn['message']}")
+            if turn['status'] == 'processing':
+                self.write('Membrain: (still working on this)')
+                self.watch_turn(turn, context)
+            else:
+                self.write('Membrain: ' + (turn.get('reply') or turn.get('error') or ''))
+
+    def converse(self, value):
+        """Send value as a turn, keeping a stable request ID so /retry cannot duplicate it."""
+        frame = self.current
+        if frame.context.request_id is None or frame.draft != value:
+            frame.context = replace(frame.context, request_id=uuid4())
+        frame.draft = value
+        try:
+            result = self.backend.call('turn.send', value, frame.context)
+        except ClientError as error:
+            self.write(str(error))
+            self.write('Message kept. Use /retry to send it again.')
+            return
+        frame.draft = ''
+        frame.context = replace(result.context, request_id=None)
+        self.last_context = replace(self.last_context, conversation_id=result.context.conversation_id,
+                                    capture_id=result.context.capture_id)
+        self.remember()
+        self.wait(result)
+
+    def retry_turn(self):
+        frame = self.current
+        if frame.draft:
+            self.converse(frame.draft)
+            return
+        if not frame.context.turn_id:
+            self.write('Nothing to retry.')
+            return
+        try:
+            result = self.backend.call('turn.retry', '', frame.context)
+        except ClientError as error:
+            self.write(str(error))
+            return
+        self.wait(result)
+
+    def wait(self, result):
+        """Show progress until the reply is ready; Ctrl-C hands the turn to the background monitor."""
+        turn, shown, waited, hinted = result.payload, 0, 0.0, False
+        try:
+            while True:
+                progress = turn.get('progress') or []
+                for step in progress[shown:]:
+                    self.write(f"  … {step['text']}")
+                shown = len(progress)
+                if turn['status'] != 'processing':
+                    break
+                if waited >= SLOW_REPLY and not hinted:
+                    hinted = True
+                    self.write('  Still working. If nothing changes, check the worker is running (./start status). '
+                               'Press Ctrl-C to keep chatting meanwhile.')
+                self.sleep(POLL_INTERVAL)
+                waited += POLL_INTERVAL
+                result = self.backend.call('turn.get', '', result.context)
+                turn = result.payload
+        except KeyboardInterrupt:
+            self.watch_turn(turn, result.context)
+            self.write('\nStill working on that; the reply will appear here when it is ready.')
+            return
+        except ClientError as error:
+            self.watch_turn(turn, result.context)
+            self.write(f'{error} Your message is saved; the reply will appear once the server is reachable.')
+            return
+        self.current.context = result.context
+        if turn['status'] == 'failed':
+            if turn.get('reply'):
+                self.write('\nMembrain: ' + turn['reply'])
+            self.write(f"Couldn't finish: {turn.get('error') or 'processing stopped'}. Use /retry to try again.")
+            return
+        self.write('\nMembrain: ' + (turn.get('reply') or ''))
+
+    def watch_turn(self, turn, context):
+        if turn.get('job_id'):
+            job = Job(turn['job_id'], 'turn', turn['id'], 'running')
+            self.known_jobs[job.id] = job
+            self.monitor.watch(job, context)
 
     def has_scope(self):
         context = self.current.context
@@ -364,7 +501,7 @@ class Session:
             self.ask('review.answer', result.prompt, 'review_next', context=result.context)
 
     def action(self, operation):
-        if operation in ('setup', 'help'):
+        if operation in ('setup', 'help', 'chat'):
             self.handle('/' + operation)
         elif operation == 'capture.new':
             self.ask('capture.message', 'What did you learn? Enter an explanation, uncertainty, question or resource.', context=Context())

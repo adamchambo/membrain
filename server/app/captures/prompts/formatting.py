@@ -25,7 +25,8 @@ Use existing_concept_id only for an unmistakable match among existing_concepts:
 the same idea, even if worded differently or saved in another conversation.
 If updating a concept, produce its cumulative user explanation, combining the
 supplied existing understanding with what the user actually adds or revises now.
-Otherwise use null and a concise title. Conversation history is context; do not
+Otherwise use null and a concise title naming the idea itself (e.g. "Why computers
+use binary"), never the user ("User's understanding of ..."). Conversation history is context; do not
 re-bank old messages. Do not claim a topic is understood just because it is named.
 
 Organise automatically: each understanding's subjects lists 1-3 subject names,

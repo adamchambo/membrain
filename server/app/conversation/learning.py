@@ -131,17 +131,31 @@ def recall(run: TurnRun, index: int, intent: Intent, count: int) -> None:
 def quote(view: dict, characters: int = 600) -> str:
     body = view["full_explanation"]
     body = body if len(body) <= characters else body[:characters] + " …"
-    return f"You saved this about {view['title']} ({view['saved_on']}):\n  “{body}”"
+    source = ("You adopted this explanation from Membrain" if view["origin"] == "user_confirmed_suggestion"
+              else "You saved this")
+    return f"{source} about {view['title']} ({view['saved_on']}):\n  “{body}”"
+
+
+def bullets(title: str, items: list[str]) -> str:
+    return title + "\n" + "\n".join(f"  - {item}" for item in items)
 
 
 def recall_reply(views: list[dict], output: RecallOutput, missing: str | None) -> str:
     parts = [missing] if missing else []
-    parts.extend(quote(view) for view in views[:3])
+    # One sentence can support several concepts; quote it once under all their titles.
+    quoted: dict[str, dict] = {}
+    for view in views[:3]:
+        if view["full_explanation"] in quoted:
+            first = quoted[view["full_explanation"]]
+            first["title"] = f"{first['title']} and {view['title']}"
+        else:
+            quoted[view["full_explanation"]] = dict(view)
+    parts.extend(quote(view) for view in quoted.values())
     parts.append(output.reminder)
     if output.holds:
-        parts.append("What holds up: " + "; ".join(output.holds))
+        parts.append(bullets("What holds up:", output.holds))
     if output.breaks_down:
-        parts.append("Where it breaks down: " + "; ".join(output.breaks_down))
+        parts.append(bullets("Where it breaks down:", output.breaks_down))
     verdict = {"accurate": "By general knowledge, this looks accurate.",
                "partly_accurate": "By general knowledge, this is partly accurate.",
                "inaccurate": "By general knowledge, part of this looks inaccurate.",
@@ -250,7 +264,11 @@ def diagnose(run: TurnRun, index: int, intent: Intent, count: int) -> None:
         evidence = [{"concept_id": str(n.concept_id), "kind": n.kind, "evidence": n.evidence, "summary": n.summary[:300]}
                     for n in db.scalars(select(LearningNeed).where(LearningNeed.concept_id.in_(ids),
                                         LearningNeed.status.in_(["open", "exploring"]))).all()][:8]
-    payload = {"request": run.message, "saved": [for_model(v) for v in views], "evidence": evidence}
+        asked = db.scalars(select(LearningNeedEvent.payload).join(LearningNeed, LearningNeed.id == LearningNeedEvent.need_id)
+            .where(LearningNeed.concept_id.in_(ids), LearningNeedEvent.kind == "asked")
+            .order_by(LearningNeedEvent.created_at.desc()).limit(6)).all()
+    payload = {"request": run.message, "saved": [for_model(v) for v in views], "evidence": evidence,
+               "already_asked": [item["question"] for item in asked if item.get("question")]}
     if whole:
         payload["candidates"] = [{"concept_id": str(c["concept_id"]), "title": c["title"], "reasons": c["reasons"]} for c in candidates]
         payload["instruction"] = "Choose the single most useful candidate to check now and focus findings on it."

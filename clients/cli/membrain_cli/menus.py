@@ -20,6 +20,7 @@ MENUS = {
         ("Processing status", "status"),
         ("Settings / setup", "@setup"),
         ("Help", "@help"),
+        ("Back to the conversation", "@chat"),
     )),
     "capture": Menu("Capture", (
         ("Start a new conversation", "@capture.new"),

@@ -8,14 +8,15 @@ from .types import ClientError
 def main(argv=None):
     """Parse argv (or process arguments) and start setup or the interactive session."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['menu', 'setup'], nargs='?', default='menu')
+    parser.add_argument('command', choices=['chat', 'menu', 'setup'], nargs='?', default='chat',
+                        help='chat (default) talks to Membrain; menu opens the classic menus')
     parser.add_argument('--api-url', help='Local server address; overrides saved settings and MEMBRAIN_API_URL')
     parser.add_argument('--stub', action='store_true', help='Run local demo responses without API calls or saved state')
     parser.add_argument('--no-setup', action='store_true', help='Skip automatic setup; use current server settings')
     args = parser.parse_args(argv)
     if args.stub:
         from .stub_api import StubAPI
-        Session(StubAPI()).run()
+        Session(StubAPI(), start='chat' if args.command == 'chat' else 'main').run()
         return 0
     try:
         from .api import SDKBackend
@@ -35,7 +36,8 @@ def main(argv=None):
             if not args.no_setup and (not store.path.exists() or not report.database.ready):
                 wizard(backend)
             store.save(url)
-            Session(backend, store=store, api_url=url, context=store.resume(url), setup=lambda: wizard(backend)).run()
+            Session(backend, store=store, api_url=url, context=store.resume(url), setup=lambda: wizard(backend),
+                    start='chat' if args.command == 'chat' else 'main').run()
         finally:
             backend.close()
     except (EOFError, KeyboardInterrupt):

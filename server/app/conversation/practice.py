@@ -215,13 +215,15 @@ def answer(run: TurnRun, index: int, intent: Intent, count: int) -> None:
 def feedback_text(fmt, options, key, chosen, factual, assessment: AnswerAssessment, snapshot: dict) -> str:
     lines = []
     if fmt == "mcq":
-        right = f"{LETTERS[key['correct_index']]}) {options[key['correct_index']]}"
+        def option(index):
+            return f"{LETTERS[index]}) {options[index].rstrip('.')}"
+        right = option(key["correct_index"])
         if chosen is None:
             lines.append(f"I couldn't tell which option you meant. The answer is {right}.")
         elif factual == "correct":
             lines.append(f"Correct: {right}.")
         else:
-            lines.append(f"Not quite: you chose {LETTERS[chosen]}) {options[chosen]}. The answer is {right}.")
+            lines.append(f"Not quite: you chose {option(chosen)}. The answer is {right}.")
         lines.append(assessment.feedback)
     else:
         verdict = {"correct": "correct", "partially_correct": "partly correct", "incorrect": "not correct",

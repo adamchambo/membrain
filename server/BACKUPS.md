@@ -3,12 +3,20 @@
 | Version | Date | Change |
 | --- | --- | --- |
 | 0.1 | 2026-10-19 | Define additive JSON portability and verify PostgreSQL recovery separately. |
+| 0.2 | 2026-10-21 | `membrain.bank.v2` adds conversation turns, learning needs and their history. |
 
 ## Portable JSON
 
-Authenticated `GET /api/v1/bank/export` returns `membrain.bank.v1` JSON containing
+Authenticated `GET /api/v1/bank/export` returns `membrain.bank.v2` JSON containing
 user statements, histories, resources and uploaded source bytes, links, subjects,
-review evidence, generated artifacts and suggestion decisions. Secrets in server
+review evidence, generated artifacts, suggestion decisions, conversation turns and
+learning needs with their event history.
+
+`membrain.bank.v1` (and legacy `oracle.bank.v1`) documents still import. Their
+missing v2 columns are filled with v1-equivalent values: subjects and memberships are
+marked user-created (v1 had no automatic organisation), and a membership's unknown
+creation time is set to its subject's creation time. Imported unfinished turns are
+re-queued as turns, never as plain captures, so a message is not banked twice. Secrets in server
 configuration, runtime jobs/leases, vectors and audio are excluded. User-written
 content is exported verbatim; do not assume it has been scrubbed of secrets the
 user themselves wrote.

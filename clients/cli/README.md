@@ -11,12 +11,14 @@ From the repository root, using Python 3.10+ (the existing project venv uses 3.1
 ```sh
 .venv/bin/python -m pip install -e sdk/python -e clients/cli
 .venv/bin/membrain
+.venv/bin/membrain menu
 .venv/bin/membrain setup
 .venv/bin/membrain --stub
 ```
 
-- `membrain` opens the interactive menu. First launch or an unready database opens
-  setup automatically; setup can also be opened with `/setup` during a session.
+- `membrain` opens the conversation (see below), resuming the last one for this
+  server. `membrain menu` opens the classic menus instead. First launch or an unready
+  database opens setup automatically; setup can also be opened with `/setup` during a session.
 - Model setup first offers Local model (Ollama or LM Studio), Cloud provider
   (OpenAI or another compatible provider), or Custom endpoint. Local addresses
   are prefilled and editable; available local model IDs are offered for selection,
@@ -42,6 +44,34 @@ disabling a capability sends null. Nonempty server environment variables overrid
 file settings; the wizard reports overrides returned by setup. Existing embeddings
 use the server's profile migration: old vectors stay active until explicit cutover.
 Provider keys are entered without terminal echo and submitted only to server settings.
+
+## Conversation
+
+Type naturally. The server interprets each message and runs the matching activity;
+there are no menus or prerequisites to choose first:
+
+- "I'm learning about LLMs. I think attention lets tokens weigh each other." saves
+  your explanation in your words and files it under a subject automatically.
+- "Remind me how fractions work using my pizza analogy" quotes what you saved, then
+  separately says what holds up and where it breaks down. Your saved words never change.
+- "What gaps do I have about maths?" or "Pick a gap from anything I've learned"
+  names suspected gaps or misconceptions (labelled as suspicions) and asks one question.
+- "Give me cue cards for what I learned recently" ("recently" = 7 days) or
+  "A multiple-choice quiz on binary from last week" (calendar week, your timezone).
+  Answer with a letter or your own words; `stop` ends the set.
+- "Explain two's complement with a diagram" teaches without saving; "save that"
+  adopts it as your explanation, recorded as adopted rather than your own words.
+
+Each message is saved on the server before any model call, with a client message ID,
+so a network failure followed by `/retry` cannot save it twice. While Membrain works,
+progress lines appear; Ctrl-C returns to the prompt and the reply arrives later as a
+background result. A failed message shows what did complete (for example what was
+saved) and `/retry` reprocesses only the unfinished part. Your timezone comes from
+`TZ` or `/etc/localtime`.
+
+Chat commands: `/new` starts a conversation, `/history` shows recent turns, `/undo`
+retracts what your last message saved, `/menu` opens the classic menus (`/chat` or
+"Back to the conversation" returns), `/help`, `/quit`.
 
 ## Navigation and learning
 

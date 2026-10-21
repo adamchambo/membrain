@@ -18,8 +18,9 @@ from app.learning.models import LearningNeed, LearningNeedEvent
 from app.review.models import ReviewAttempt, ReviewAttemptConcept
 
 EVIDENCE_WEIGHT = {"model_suspected": 1, "user_uncertain": 2, "observed_in_answer": 3}
+# "kind of like" and "sort of" usually introduce an analogy, so they are not counted as doubt.
 HEDGE = re.compile(r"\b(i think|i guess|maybe|perhaps|probably|not sure|unsure|i don'?t (know|understand|get)|confus\w*"
-                   r"|i believe|might be|kind of|sort of|no idea|i wonder)\b|\?", re.I)
+                   r"|i believe|might be|no idea|i wonder)\b|\?", re.I)
 WEAK_RECALL = {"partial", "different", "unclear"}
 WEAK_FACTUAL = {"incorrect", "partially_correct"}
 

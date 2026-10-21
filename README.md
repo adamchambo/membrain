@@ -84,9 +84,12 @@ See [generation and verification](tools/codegen/README.md) and the
 
 Install the local client and generated SDK with
 `.venv/bin/python -m pip install -e sdk/python -e clients/cli`, then run
-`.venv/bin/membrain`. Run `.venv/bin/membrain setup` for configuration, or
-`.venv/bin/membrain --stub` for an offline navigation demo.
-See [CLI flows, settings and checks](clients/cli/README.md).
+`.venv/bin/membrain`. It opens a conversation: say what you learned, ask for a
+reminder of your own analogy, your gaps, cue cards or a quiz for a topic and period,
+or an explanation, all in plain words. `.venv/bin/membrain menu` opens the classic
+menus, `.venv/bin/membrain setup` configuration, and `.venv/bin/membrain --stub` an
+offline demo. See [CLI flows, settings and checks](clients/cli/README.md) and the
+[turn API](server/API.md#conversational-turns).
 
 ## Rename compatibility
 
@@ -95,7 +98,8 @@ The old `oracle` executable remains an alias. Server settings accept legacy
 `ORACLE_*` environment variables and saved configuration keys; `MEMBRAIN_*`
 values take precedence. Existing CLI resume IDs are read from the old `oracle`
 state directory until first save into `membrain`. Legacy `oracle.bank.v1` exports
-remain importable. Database roles, database names and Docker volume identities
+and `membrain.bank.v1` exports remain importable into the current `membrain.bank.v2`
+format. Database roles, database names and Docker volume identities
 are retained so the rename does not create an empty knowledge bank.
 
 ## Reliable learning workflows

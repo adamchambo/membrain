@@ -3,10 +3,46 @@
 | Version | Date | Change |
 | --- | --- | --- |
 | 0.1 | 2026-10-19 | Setup, profile migration, maintenance, sources, learning, review, maps and portability. |
+| 0.2 | 2026-10-21 | Conversational turns as the primary interaction. |
 
 FastAPI publishes request contracts in `/docs` and `/openapi.json`.
 This is a local, single-bank API. Compose binds it to localhost. Account/tenant
 authorization, public hosting and device sync are not implemented.
+
+## Conversational turns
+
+`POST /api/v1/turns` takes `text`, a client-generated `client_message_id` (UUID),
+optional `conversation_id`, and an IANA `timezone`. It saves the text verbatim as a
+capture and returns `202` with the turn before any model call; resubmitting the same
+`client_message_id` returns the same turn, and different text with it is `409`.
+Poll `GET /api/v1/turns/{id}`: `progress` is persisted (reconnecting replays it),
+`status` is `processing`, `completed` or `failed`, and `reply` is plain text.
+`active_question` is the conversation's pending question; multiple-choice keys are
+never returned. `GET /api/v1/conversations/{id}/turns?before=&limit=` pages history.
+
+The worker interprets a turn with one model call into up to four intents from a
+closed set (bank, recall, teach, adopt, diagnose, practice, answer, stop, help),
+then corrects known labelling errors deterministically. Each intent runs a fixed
+server recipe; the model never chooses record IDs or tools. Topic, "this" and
+period wording resolve to concept IDs on the server ("recently" is 7 days; "last
+week" is the previous Monday–Sunday in the turn's timezone). Turns in a conversation
+are processed in order.
+
+Each intent's writes and its recorded effect commit in one lease-fenced
+transaction, so a retried turn (`POST /api/v1/turns/{id}/retry`) skips completed
+intents: nothing is banked, asked or graded twice. A failed turn's `reply` shows the
+intents that did complete.
+
+Record semantics: banking saves the user's own sentences and files them under
+automatic subjects (with aliases and provenance). Teaching is stored as a learning
+artifact and becomes understanding only through "save that", recorded as an adopted
+suggestion revision. Recall quotes saved text verbatim and assesses it separately;
+the saved explanation is never changed. Diagnosis records suspected gaps and
+misconceptions as learning needs with evidence strength (`model_suspected`,
+`user_uncertain`, `observed_in_answer`) and an event history; bank-wide diagnosis
+ranks every saved concept deterministically before the model picks one. Practice
+feedback keeps recall (versus the saved explanation) apart from factual correctness;
+for multiple choice the stored key decides correctness.
 
 ## Setup and embedding profiles
 

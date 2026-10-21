@@ -9,12 +9,16 @@ from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 import test_ingestion as support
+from app.captures.ai_schemas import Understanding
 from app.captures.models import Capture, Conversation
+from app.conversation.ai_schemas import RecallOutput
+from app.conversation.learning import recall_reply
 from app.captures.prompts.formatting import CAPTURE_PROMPT
 from app.conversation import prompts
 from app.conversation.interpret import ROUTER_PROMPT, Intent, RouterOutput, guard, route, shortcut
 from app.conversation.models import ConversationTurn
-from app.conversation.scope import period_bounds
+from app.conversation.scope import period_bounds, resolve
+from app.learning.organisation import assign, ensure_subject
 from app.jobs.models import WorkItem
 from app.jobs.worker import run_one
 from app.knowledge.models import Concept, ExplanationRevision
@@ -209,6 +213,20 @@ class ConversationTests(unittest.TestCase):
                           "format": "cue_card"}), question={"question": "Explain binary in your own words."}))
         self.assertIn("Here is 1 cue card from everything you've saved over the past 14 days", wider["reply"])
 
+    def test_topic_scope_ranks_title_matches_before_broad_subject_members(self):
+        self.bank("Binary numbers", "Binary uses two symbols.")
+        self.bank("Two's complement", "Negative numbers in binary flip the bits and add one.")
+        self.bank("Hexadecimal", "Hex uses sixteen symbols.")
+        with Session(self.engine) as db, db.begin():
+            subject = ensure_subject(db, "Number systems", ["binary"])
+            for concept in db.scalars(select(Concept)).all():
+                assign(db, subject.id, concept.id, None)
+        with Session(self.engine) as db:
+            scope = resolve(db, topic="binary", refers_to_context=False, period="none", days=None, timezone_name="UTC",
+                            conversation_id=None)
+            titles = [db.get(Concept, concept_id).title for concept_id in scope.concept_ids]
+        self.assertEqual(titles, ["Binary numbers", "Two's complement", "Hexadecimal"])
+
     def test_later_turn_waits_for_earlier_turn(self):
         first = self.submit("Help")
         second = self.submit("Help again", first["conversation_id"])
@@ -279,6 +297,22 @@ class ConversationTests(unittest.TestCase):
             self.assertEqual(db.scalar(select(func.count()).select_from(ConversationTurn)), 4)
 
 
+class FormattingTests(unittest.TestCase):
+    def test_concept_titles_name_the_idea_not_the_user(self):
+        title = Understanding.model_validate(support.understanding("User's understanding of why computers use binary", "x")).title
+        self.assertEqual(title, "Why computers use binary")
+        self.assertEqual(Understanding.model_validate(support.understanding("User interfaces", "x")).title, "User interfaces")
+
+    def test_recall_quotes_a_shared_sentence_once(self):
+        sentence = "I think binary uses only 0 and 1, and each position is worth double."
+        views = [{"title": title, "full_explanation": sentence, "saved_on": "21 Oct 2026", "origin": "ai_formatted_user_input"}
+                 for title in ("Binary digits", "Place value")]
+        output = RecallOutput(reminder="You described binary.", assessment="accurate")
+        reply = recall_reply(views, output, None)
+        self.assertEqual(reply.count(sentence), 1)
+        self.assertIn("Binary digits and Place value", reply)
+
+
 class RouterTests(unittest.TestCase):
     def test_option_letters_and_stop_skip_inference(self):
         active = {"type": "practice", "format": "mcq", "question": "Q", "options": ["a", "b", "c"]}
@@ -296,8 +330,29 @@ class RouterTests(unittest.TestCase):
         self.assertEqual([i.action for i in guard("Actually, I now think X. I'm not sure about Y.", labelled).intents], ["bank"])
         practice = RouterOutput(intents=[Intent(action="practice", format="mcq")])
         self.assertEqual([i.action for i in guard("I think sorting is O(n log n). Quiz me.", practice).intents], ["bank", "practice"])
-        cue = RouterOutput(intents=[Intent(action="practice", period="recent")])
-        self.assertEqual([i.action for i in guard("Give me cue cards for things I learned recently", cue).intents], ["practice"])
+        cue = RouterOutput(intents=[Intent(action="practice", period="recent", refers_to_context=True)])
+        result = guard("Give me cue cards for things I learned recently", cue).intents
+        self.assertEqual([i.action for i in result], ["practice"])
+        self.assertFalse(result[0].refers_to_context)
+
+    def test_guard_takes_the_item_count_from_the_wording(self):
+        def count(message):
+            return guard(message, RouterOutput(intents=[Intent(action="practice")])).intents[0].count
+        self.assertEqual(count("Quiz me on this with one multiple-choice question"), 1)
+        self.assertEqual(count("Give me 5 cue cards on binary"), 5)
+        self.assertEqual(count("Ask me three multiple choice questions about stacks"), 3)
+        self.assertEqual(count("Give me a flashcard"), 1)
+        self.assertIsNone(count("Quiz me with a few questions"))
+        self.assertIsNone(count("Quiz me on chapter 3"))
+
+    def test_guard_corrections_observed_with_the_local_model(self):
+        def actions(message, *labels, active=None):
+            return [i.action for i in guard(message, RouterOutput(intents=[Intent(action=a) for a in labels]), active).intents]
+        question = {"type": "diagnostic", "question": "Why hexadecimal?"}
+        self.assertEqual(actions("What gaps do I have about number systems?", "diagnose", "recall"), ["diagnose"])
+        self.assertEqual(actions("Explain two's complement with a diagram", "teach", "answer", active=question), ["teach"])
+        self.assertEqual(actions("I'm not sure, maybe it just averages them?", "answer", "bank", active=question), ["answer"])
+        self.assertEqual(actions("B, and remind me what I said about it", "answer", "recall", active=question), ["answer", "recall"])
 
     def test_placeholder_slot_values_are_absent(self):
         intent = Intent.model_validate({"action": "practice", "format": "none", "count": 0, "style": "", "topic": "it", "analogy": "none"})

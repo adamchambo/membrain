@@ -1,5 +1,6 @@
 """Task outputs, distinct from HTTP requests and persisted ORM records."""
 
+import re
 from typing import Literal
 from uuid import UUID
 
@@ -18,6 +19,10 @@ class FormatCandidate(TaskOutput):
     uncertainty: list[str] = Field(default_factory=list, max_length=20)
 
 
+USER_TITLE = re.compile(r"^(the\s+)?(user'?s?|my|your)\s+(own\s+)?(understanding|explanation|view|belief|idea|notes?)\s+(of|about|on)\s+",
+                        re.I)
+
+
 def blank_names(values: list[str]) -> list[str]:
     return [value.strip() for value in values if isinstance(value, str) and value.strip()]
 
@@ -29,6 +34,13 @@ class Understanding(TaskOutput):
     uncertainty: list[str] = Field(default_factory=list, max_length=20)
     existing_concept_id: UUID | None = None
     subjects: list[str] = Field(default_factory=list, max_length=3)
+
+    @field_validator("title")
+    @classmethod
+    def concept_title(cls, value: str) -> str:
+        """Name the idea, not the person: local models often prefix "User's understanding of"."""
+        stripped = USER_TITLE.sub("", value).strip()
+        return stripped[:1].upper() + stripped[1:] if stripped else value
 
     @field_validator("source_excerpts")
     @classmethod

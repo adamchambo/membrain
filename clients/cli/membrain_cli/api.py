@@ -31,9 +31,10 @@ from .commands.review import ReviewCommands
 from .commands.learning import LearningCommands
 from .commands.reflection import ReflectionCommands
 from .commands.status import StatusCommands
+from .commands.conversation import ConversationCommands
 
 
-class SDKBackend(CaptureCommands, BankCommands, ReviewCommands, LearningCommands, ReflectionCommands, StatusCommands):
+class SDKBackend(ConversationCommands, CaptureCommands, BankCommands, ReviewCommands, LearningCommands, ReflectionCommands, StatusCommands):
     is_stub = False
 
     def __init__(self, url: str, client=None, jobs: list[Job] | None = None):
@@ -48,7 +49,7 @@ class SDKBackend(CaptureCommands, BankCommands, ReviewCommands, LearningCommands
                           ('discovery', sdk.DiscoveryApi), ('review', sdk.ReviewApi),
                           ('subjects', sdk.SubjectsAndReflectionApi), ('learning', sdk.LearningApi),
                           ('management', sdk.BankManagementApi), ('setup', sdk.SetupApi),
-                          ('work', sdk.JobsApi), ('sources', sdk.SourceContentApi)]:
+                          ('work', sdk.JobsApi), ('sources', sdk.SourceContentApi), ('conversation', sdk.ConversationApi)]:
             setattr(self, name, cls(self.client))
 
     def execute(self, function, *args, **kwargs):
@@ -114,6 +115,8 @@ class SDKBackend(CaptureCommands, BankCommands, ReviewCommands, LearningCommands
 
     def call(self, operation: str, text: str, context: Context, *, cursor=None) -> Result:
         """Perform operation using entered text and typed context; cursor continues a list."""
+        if operation.startswith('turn.'):
+            return self._turn(operation, text, context)
         if operation.startswith('capture.') or operation.startswith('chat.'):
             return self._capture(operation, text, context, cursor)
         if operation.startswith(('bank.', 'scope.', 'subject.')):
@@ -136,6 +139,14 @@ class SDKBackend(CaptureCommands, BankCommands, ReviewCommands, LearningCommands
 
     def poll(self, job: Job, context: Context) -> tuple[str, Result]:
         """Inspect job and return terminal results using its saved context."""
+        if job.kind == 'turn':
+            result = self._turn('turn.get', '', replace(context, turn_id=job.target))
+            turn = result.payload
+            status = {'completed': 'succeeded', 'failed': 'failed'}.get(turn['status'], 'running')
+            if status == 'failed':
+                message = (turn.get('reply') or '') + f"\nCouldn't finish: {turn.get('error') or 'processing stopped'}. Use /retry in the chat."
+                result = replace(result, message=message.strip())
+            return status, replace(result, payload=None)
         work = self.execute(self.work.get_job, job.id)
         context = replace(context, job_id=job.id)
         if work.status == 'succeeded' and job.target:

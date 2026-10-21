@@ -91,7 +91,8 @@ Actions:
   diagnose.
 - practice: quiz, test, cue cards, flashcards, practice questions.
   format: mcq for multiple choice; cue_card for cue/flash cards; teach_back for
-  "let me explain it"; open otherwise. count if a number is given.
+  "let me explain it"; open otherwise. count if a number is given, including
+  words ("one question" -> 1, "a few" -> null).
 - answer: the message answers the active question in context.active_activity.
 - adopt: accepts the assistant's last explanation as their own ("yes, save that").
 - stop: end the active quiz or question.
@@ -132,6 +133,29 @@ DIAGNOSTIC_REQUEST = re.compile(
     r"|learn next|don'?t (i )?(understand|know)|errors?)\b", re.I)
 
 
+RECALL_REQUEST = re.compile(
+    r"\b(remind|recall|what did i|what have i|how did i|my (own )?(analogy|explanation|words|notes?|example)|did i (say|save|write))\b", re.I)
+REFERENCE = re.compile(r"\b(this|that|it|these|those|them|above|same)\b", re.I)
+REQUESTS = {"teach", "recall", "practice", "diagnose", "help"}
+NUMBER_WORDS = {word: n for n, word in enumerate(
+    "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen"
+    " eighteen nineteen twenty".split(), start=1)} | {"a": 1, "an": 1, "single": 1, "a single": 1, "a couple of": 2}
+REQUESTED_COUNT = re.compile(
+    r"\b(\d{1,2}|a single|a couple of|" + "|".join(sorted(NUMBER_WORDS, key=len, reverse=True)) + r")\s+"
+    r"(?:(?:more|quick|short|multiple[- ]choice|mcqs?|open|cue|flash|practice|quiz|test|review)[ -]?)*"
+    r"(questions?|cards?|flashcards?|mcqs?)\b", re.I)
+
+
+def requested_count(message: str) -> int | None:
+    """Item count stated in the wording ("one multiple-choice question", "5 cue cards")."""
+    match = REQUESTED_COUNT.search(message)
+    if not match:
+        return None
+    number = match.group(1).casefold()
+    value = int(number) if number.isdigit() else NUMBER_WORDS[number]
+    return value if 1 <= value <= 20 else None
+
+
 def route(client: ChatClient, message: str, context: dict) -> RouterOutput:
     """Label message using context (recent turns, active activity, conversation topic)."""
     active = context.get("active_activity")
@@ -142,7 +166,7 @@ def route(client: ChatClient, message: str, context: dict) -> RouterOutput:
                               failure="The model could not interpret this message")
         except Unavailable:
             result = fallback(message, active)
-    return guard(message, result)
+    return guard(message, result, active)
 
 
 def fallback(message: str, active: dict | None) -> RouterOutput:
@@ -154,18 +178,34 @@ def fallback(message: str, active: dict | None) -> RouterOutput:
     return RouterOutput(intents=[Intent(action="teach", topic=message[:200])])
 
 
-def guard(message: str, result: RouterOutput) -> RouterOutput:
+def guard(message: str, result: RouterOutput, active: dict | None = None) -> RouterOutput:
     """Apply deterministic corrections for the model's observed labelling errors.
 
     Banking is added whenever the wording states the user's own understanding: capture
     extraction declines non-explanations, so a false positive costs one model call while a
-    missed explanation would silently lose the user's learning. Diagnosis is dropped when it
-    was inferred from stated uncertainty rather than requested.
+    missed explanation would silently lose the user's learning. Requests the wording does
+    not support (diagnosis inferred from uncertainty, recall copied from context) are
+    dropped, and "this" only refers to context when the message contains a reference.
+    With a question pending (active), an answer is practice evidence: it is never also
+    banked as understanding, and a message that opens with a new request is not graded.
     """
-    intents = result.intents
+    intents = list(result.intents)
     if len(intents) > 1 and "bank" in {i.action for i in intents} and not DIAGNOSTIC_REQUEST.search(message):
         intents = [intent for intent in intents if intent.action != "diagnose"]
+    if len(intents) > 1 and not RECALL_REQUEST.search(message):
+        intents = [intent for intent in intents if intent.action != "recall"] or intents
+    if not REFERENCE.search(message):
+        intents = [intent.model_copy(update={"refers_to_context": False}) if intent.refers_to_context else intent
+                   for intent in intents]
+    actions = [intent.action for intent in intents]
+    if "answer" in actions and (not active or actions[0] in REQUESTS) and len(actions) > 1:
+        intents = [intent for intent in intents if intent.action != "answer"]
+    elif "answer" in actions and active:
+        intents = [intent for intent in intents if intent.action != "bank"]
     actions = [intent.action for intent in intents]
     if not ({"bank", "answer", "adopt"} & set(actions)) and OWN_UNDERSTANDING.search(message):
         intents = [Intent(action="bank"), *intents]
+    if (count := requested_count(message)) is not None:
+        intents = [intent.model_copy(update={"count": count}) if intent.action == "practice" else intent
+                   for intent in intents]
     return RouterOutput(intents=intents[:4])

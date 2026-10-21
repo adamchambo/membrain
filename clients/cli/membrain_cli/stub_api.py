@@ -20,6 +20,16 @@ class StubAPI:
 
     def call(self, operation, text, context, *, cursor=None):
         self.calls.append((operation, text, context))
+        if operation.startswith('turn.'):
+            if operation == 'turn.history':
+                return Result('', context, payload=[])
+            message = text if operation == 'turn.send' else '(stub message)'
+            turn = {'id': DEMO, 'job_id': DEMO, 'conversation_id': context.conversation_id or CONVERSATION, 'capture_id': DEMO,
+                    'message': message, 'status': 'completed', 'progress': [{'text': 'Reading your message'}],
+                    'reply': '[Stub] Message received in memory only; no interpretation, saving or assessment happened.',
+                    'error': None}
+            return Result(turn['reply'], replace(context, conversation_id=turn['conversation_id'], capture_id=DEMO, turn_id=DEMO),
+                          payload=turn)
         if operation == 'capture.message':
             return Result('[Stub] Message received in memory only.', replace(context, conversation_id=context.conversation_id or CONVERSATION,
                           capture_id=DEMO, request_id=None))

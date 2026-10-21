@@ -129,12 +129,20 @@ def resolve(db: Session, *, topic: str | None, refers_to_context: bool, period: 
         scope.subject_ids = [s.id for s in subjects]
         if len(subjects) == 1:
             scope.topic = subjects[0].title
-        candidates.extend(subject_members(db, scope.subject_ids))
-        candidates.extend(hit.id for hit in text_search(db, topic, 50) if hit.type == "concept")
+        # Order by strength of evidence: titles naming the topic, then meaning, then
+        # explanations mentioning it, then the rest of a matching subject (broadest).
+        text_hits = [hit for hit in text_search(db, topic, 50) if hit.type == "concept"]
+        candidates.extend(hit.id for hit in text_hits if hit.match_reason == "title")
         if topic_vector is not None:
             hits = [hit for hit in vector_search(db, topic_vector[0], topic_vector[1], 30) if hit.similarity is not None]
             best = max((hit.similarity for hit in hits), default=0)
-            candidates.extend(hit.id for hit in hits if hit.similarity >= max(TOPIC_MINIMUM, best - TOPIC_MARGIN))
+            candidates.extend(hit.id for hit in sorted(hits, key=lambda hit: -hit.similarity)
+                              if hit.similarity >= max(TOPIC_MINIMUM, best - TOPIC_MARGIN))
+        candidates.extend(hit.id for hit in text_hits if hit.match_reason != "title")
+        ranked = list(candidates)
+        candidates.extend(subject_members(db, scope.subject_ids))
+        scope.concept_ids, scope.considered = eligible(db, candidates, since, until, limit, ranked)
+        return scope
     elif context_ids:
         scope.basis = "context"
         candidates.extend(context_ids)
@@ -152,9 +160,11 @@ def resolve(db: Session, *, topic: str | None, refers_to_context: bool, period: 
     return scope
 
 
-def eligible(db: Session, candidates: list[UUID] | None, since, until, limit: int) -> tuple[list[UUID], int]:
+def eligible(db: Session, candidates: list[UUID] | None, since, until, limit: int,
+             ranked: list[UUID] | None = None) -> tuple[list[UUID], int]:
     """Keep active concepts whose current explanation exists and, with a period, that the user
-    explained or revised inside it; order by most recent saved explanation."""
+    explained or revised inside it. Order follows ranked (default: candidates' order); the
+    remaining candidates follow, most recently explained first."""
     latest = latest_revisions()
     current = select(Concept.id, ExplanationRevision.created_at.label("current_at")).join(
         latest, latest.c.concept_id == Concept.id).join(ExplanationRevision, and_(
@@ -173,7 +183,8 @@ def eligible(db: Session, candidates: list[UUID] | None, since, until, limit: in
         current = current.where(Concept.id.in_(window))
     rows = db.execute(current.order_by(ExplanationRevision.created_at.desc(), Concept.id)).all()
     if candidates is not None:
-        # Preserve the caller's relevance order (subject/text/semantic/context) within the window.
-        rank = {concept_id: index for index, concept_id in enumerate(dict.fromkeys(candidates))}
+        # Preserve the caller's relevance order within the window; the sort is stable,
+        # so unranked candidates keep the recency order above.
+        rank = {concept_id: index for index, concept_id in enumerate(dict.fromkeys(candidates if ranked is None else ranked))}
         rows = sorted(rows, key=lambda row: rank.get(row.id, len(rank)))
     return [row.id for row in rows[:limit]], len(rows)

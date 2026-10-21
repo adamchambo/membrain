@@ -17,6 +17,15 @@ def server_url(value: str) -> str:
     return value.rstrip('/')
 
 
+def local_timezone() -> str:
+    """IANA zone used by the server for "today" or "last week": TZ, then /etc/localtime, else UTC."""
+    name = os.getenv('TZ', '').lstrip(':')
+    if not name:
+        target = os.path.realpath('/etc/localtime')
+        name = target.split('/zoneinfo/', 1)[1] if '/zoneinfo/' in target else ''
+    return name or 'UTC'
+
+
 class Store:
     def __init__(self, path: Path | None = None):
         """Use path for client state; default to MEMBRAIN_CLI_STATE_FILE or XDG state."""
