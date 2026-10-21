@@ -1,5 +1,5 @@
 {
-  "npmName": "@oracle/sdk",
+  "npmName": "@membrain/sdk",
   "npmVersion": "0.1.0",
   "supportsES6": true,
   "typescriptThreePlus": true,

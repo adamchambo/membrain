@@ -47,8 +47,8 @@ class CapabilityTests(unittest.TestCase):
         result = save_settings(settings)
         self.assertNotIn("synthetic-secret", json.dumps(result))
         self.assertEqual(config_path().stat().st_mode & 0o777, 0o600)
-        self.assertEqual(read_config()["settings"]["ORACLE_CHAT_MODEL"], "local")
-        with patch.dict(os.environ, {"ORACLE_CHAT_MODEL": "environment"}):
+        self.assertEqual(read_config()["settings"]["MEMBRAIN_CHAT_MODEL"], "local")
+        with patch.dict(os.environ, {"MEMBRAIN_CHAT_MODEL": "environment"}):
             self.assertEqual(safe_settings()["chat"]["model"], "environment")
         self.api("PUT", "/setup", {})
         self.api("GET", "/setup")

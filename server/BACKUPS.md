@@ -6,7 +6,7 @@
 
 ## Portable JSON
 
-Authenticated `GET /api/v1/bank/export` returns `oracle.bank.v1` JSON containing
+Authenticated `GET /api/v1/bank/export` returns `membrain.bank.v1` JSON containing
 user statements, histories, resources and uploaded source bytes, links, subjects,
 review evidence, generated artifacts and suggestion decisions. Secrets in server
 configuration, runtime jobs/leases, vectors and audio are excluded. User-written
@@ -35,10 +35,10 @@ or a private `.pgpass`. With standard `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`
 private password configuration, run:
 
 ```sh
-pg_dump --format=custom --no-owner --no-acl --file /private/backup/oracle.dump
+pg_dump --format=custom --no-owner --no-acl --file /private/backup/membrain.dump
 ```
 
-Back up the private Oracle configuration file separately with private permissions;
+Back up the private Membrain configuration file separately with private permissions;
 it contains provider credentials that are deliberately absent from portable exports.
 Record the PostgreSQL/pgvector versions and application revision alongside backups.
 
@@ -46,7 +46,7 @@ To restore, stop application writers, create an **empty recovery database** with
 pgvector available, set `PGDATABASE` to that recovery database, and run:
 
 ```sh
-pg_restore --no-owner --no-acl --exit-on-error --dbname "$PGDATABASE" /private/backup/oracle.dump
+pg_restore --no-owner --no-acl --exit-on-error --dbname "$PGDATABASE" /private/backup/membrain.dump
 ```
 
 Check the restored migration revision, inspect explanations/resources and validate

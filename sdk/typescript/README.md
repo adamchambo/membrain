@@ -1,4 +1,4 @@
-# @oracle/sdk@0.1.0
+# @membrain/sdk@0.1.0
 
 A TypeScript SDK client for the 127.0.0.1 API.
 
@@ -7,7 +7,7 @@ A TypeScript SDK client for the 127.0.0.1 API.
 First, install the SDK from npm.
 
 ```bash
-npm install @oracle/sdk --save
+npm install @membrain/sdk --save
 ```
 
 Next, try it out.
@@ -17,11 +17,11 @@ Next, try it out.
 import {
   Configuration,
   BankManagementApi,
-} from '@oracle/sdk';
-import type { ArchiveRelationshipRequest } from '@oracle/sdk';
+} from '@membrain/sdk';
+import type { ArchiveRelationshipRequest } from '@membrain/sdk';
 
 async function example() {
-  console.log("🚀 Testing @oracle/sdk SDK...");
+  console.log("🚀 Testing @membrain/sdk SDK...");
   const api = new BankManagementApi();
 
   const body = {

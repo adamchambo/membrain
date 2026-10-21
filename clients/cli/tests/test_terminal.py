@@ -4,7 +4,7 @@ import unittest
 from prompt_toolkit.data_structures import Size
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.output.vt100 import Vt100_Output
-from oracle_cli.terminal import highlighted, select
+from membrain_cli.terminal import highlighted, select
 
 
 class TerminalTests(unittest.TestCase):

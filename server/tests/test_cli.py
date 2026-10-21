@@ -10,14 +10,14 @@ from uuid import UUID, uuid4
 from unittest.mock import patch
 import unittest
 from urllib3.response import HTTPResponse
-from oracle_sdk.rest import RESTResponse
+from membrain_sdk.rest import RESTResponse
 
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'clients/cli'))
-from oracle_cli.api import SDKBackend
-from oracle_cli.types import Context, ClientError
-from oracle_cli.session import Session as TerminalSession
-from oracle_cli.config import Store
+from membrain_cli.api import SDKBackend
+from membrain_cli.types import Context, ClientError
+from membrain_cli.session import Session as TerminalSession
+from membrain_cli.config import Store
 from app.jobs.worker import run_one
 from app.knowledge.models import Concept, ExplanationRevision
 from app.config import read_config
@@ -78,7 +78,7 @@ class CLIJourneys(unittest.TestCase):
             def watch(self,*args):pass
             def drain(self):return []
         with TemporaryDirectory() as directory:
-            store=Store(Path(directory)/'cli.json');entries=iter(['1','1','My original explanation','/menu','0']);output=[]
+            store=Store(Path(directory)/'cli.json');entries=iter(['1','1','My original explanation','/menu','x']);output=[]
             terminal=TerminalSession(self.backend,read=lambda _:next(entries),write=output.append,store=store,api_url=self.backend.url,monitor=Monitor())
             terminal.run()
             restored=store.resume(self.backend.url)
@@ -115,12 +115,12 @@ class CLIJourneys(unittest.TestCase):
         self.api('PUT','/setup',config)
         self.api('PUT','/setup',{'chat':{'url':'http://localhost/chat','model':'new-chat','api_key':'new-secret'}})
         saved=read_config()['settings']
-        self.assertEqual(saved['ORACLE_CHAT_MODEL'],'new-chat')
-        self.assertEqual(saved['ORACLE_EMBEDDING_API_KEY'],'vector-secret')
-        self.assertEqual(saved['ORACLE_EMBEDDING_MODEL'],'vectors')
+        self.assertEqual(saved['MEMBRAIN_CHAT_MODEL'],'new-chat')
+        self.assertEqual(saved['MEMBRAIN_EMBEDDING_API_KEY'],'vector-secret')
+        self.assertEqual(saved['MEMBRAIN_EMBEDDING_MODEL'],'vectors')
         self.api('PUT','/setup',{'chat':None})
-        self.assertEqual(read_config()['settings']['ORACLE_EMBEDDING_API_KEY'],'vector-secret')
-        self.assertEqual(read_config()['settings']['ORACLE_CHAT_API_KEY'],'')
+        self.assertEqual(read_config()['settings']['MEMBRAIN_EMBEDDING_API_KEY'],'vector-secret')
+        self.assertEqual(read_config()['settings']['MEMBRAIN_CHAT_API_KEY'],'')
 
     def test_subject_resource_pagination_and_reflection(self):
         self.captured();concept=self.rows(Concept)[0]

@@ -17,8 +17,8 @@ class ChatClient(Protocol):
 def get_chat_client() -> ChatClient:
     from app.ai.providers.compatible import CompatibleChatClient
 
-    url = setting("ORACLE_CHAT_COMPLETIONS_URL")
-    model = setting("ORACLE_CHAT_MODEL")
+    url = setting("MEMBRAIN_CHAT_COMPLETIONS_URL")
+    model = setting("MEMBRAIN_CHAT_MODEL")
     if not url or not model:
         raise NotConfigured("A conversation model is not configured")
-    return CompatibleChatClient(url, model, setting("ORACLE_CHAT_API_KEY"))
+    return CompatibleChatClient(url, model, setting("MEMBRAIN_CHAT_API_KEY"))

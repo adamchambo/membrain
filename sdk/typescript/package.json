@@ -1,7 +1,7 @@
 {
-  "name": "@oracle/sdk",
+  "name": "@membrain/sdk",
   "version": "0.1.0",
-  "description": "OpenAPI client for @oracle/sdk",
+  "description": "OpenAPI client for @membrain/sdk",
   "author": "OpenAPI-Generator",
   "repository": {
     "type": "git",

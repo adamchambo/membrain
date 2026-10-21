@@ -1,4 +1,4 @@
-"""Supervise the native Oracle database, API, worker and interactive CLI."""
+"""Supervise the native Membrain database, API, worker and interactive CLI."""
 from __future__ import annotations
 import argparse
 from contextlib import ExitStack
@@ -48,7 +48,7 @@ def wait_api(url: str, process: subprocess.Popen | None, timeout: float = 30) ->
         try:
             if fetch(url + '/health').get('status') == 'ok':
                 schema = fetch(url + '/openapi.json')
-                if schema.get('info', {}).get('title') != 'Oracle API':
+                if schema.get('info', {}).get('title') not in ('Membrain API', 'Oracle API'):
                     raise StartupError('The selected port belongs to another service. Choose --port with a free port.')
                 return
         except (URLError, OSError, ValueError):
@@ -122,13 +122,13 @@ def supervise(command: str = 'menu', port: int = 8000, no_setup: bool = False) -
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
-            raise StartupError('Oracle is already open through this launcher. Use that session or open .venv/bin/oracle separately.') from None
+            raise StartupError('Membrain is already open through this launcher. Use that session or open .venv/bin/membrain separately.') from None
         url = f'http://127.0.0.1:{port}'
         # Check the port before migrations or other startup work.
         reuse_api = not available(port)
         if reuse_api:
             wait_api(url, None, timeout=2)
-            print(f'Using the Oracle API already running at {url}.', flush=True)
+            print(f'Using the Membrain API already running at {url}.', flush=True)
         postgres()
         try:
             migration_log = files.enter_context((logs / 'migrations.log').open('ab'))
@@ -150,7 +150,7 @@ def supervise(command: str = 'menu', port: int = 8000, no_setup: bool = False) -
             if worker.poll() is not None:
                 raise StartupError('The worker stopped during startup. See .local/logs/worker.log.')
             print('Session worker started. Logs: .local/logs/', flush=True)
-            arguments = [str(PYTHON), '-m', 'oracle_cli', command, '--api-url', url]
+            arguments = [str(PYTHON), '-m', 'membrain_cli', command, '--api-url', url]
             if no_setup:
                 arguments.append('--no-setup')
             cli = subprocess.Popen(arguments, cwd=ROOT)
@@ -194,7 +194,7 @@ def main(argv=None) -> int:
     try:
         return supervise(args.command, args.port, args.no_setup)
     except StartupError as error:
-        print(f'Could not start Oracle: {error}', file=sys.stderr)
+        print(f'Could not start Membrain: {error}', file=sys.stderr)
         return 1
     except KeyboardInterrupt:
         return 130

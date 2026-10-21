@@ -8,7 +8,7 @@ from sqlalchemy import func, select, text
 
 from app.ai.client import get_chat_client
 from app.ai.embeddings import configured_profile, embed
-from app.config import config_lock, read_config, setting, write_config
+from app.config import environment_value, config_lock, read_config, setting, write_config
 from app.database import create_db_engine, db_engine
 from app.errors import AppError, NotConfigured
 from app.jobs.models import WorkItem
@@ -27,8 +27,8 @@ def migration_head():
 
 def safe_settings() -> dict:
     return {"database_configured": bool(setting("DATABASE_URL")),
-            "chat": {"configured": bool(setting("ORACLE_CHAT_COMPLETIONS_URL") and setting("ORACLE_CHAT_MODEL")), "model": setting("ORACLE_CHAT_MODEL")},
-            "embeddings": {"configured": bool(setting("ORACLE_EMBEDDINGS_URL") and setting("ORACLE_EMBEDDING_REVISION")), "model": setting("ORACLE_EMBEDDING_MODEL", "nomic-embed-text-v1.5")}}
+            "chat": {"configured": bool(setting("MEMBRAIN_CHAT_COMPLETIONS_URL") and setting("MEMBRAIN_CHAT_MODEL")), "model": setting("MEMBRAIN_CHAT_MODEL")},
+            "embeddings": {"configured": bool(setting("MEMBRAIN_EMBEDDINGS_URL") and setting("MEMBRAIN_EMBEDDING_REVISION")), "model": setting("MEMBRAIN_EMBEDDING_MODEL", "nomic-embed-text-v1.5")}}
 
 
 def save_settings(data: SetupConfiguration, *, allow_database_change: bool = True) -> dict:
@@ -46,7 +46,7 @@ def save_settings_locked(data: SetupConfiguration, *, allow_database_change: boo
     value = read_config()
     try:
         old = configured_profile()
-        value.setdefault("embedding_connections", {})[old.key] = {"url": setting("ORACLE_EMBEDDINGS_URL"), "api_key": setting("ORACLE_EMBEDDING_API_KEY")}
+        value.setdefault("embedding_connections", {})[old.key] = {"url": setting("MEMBRAIN_EMBEDDINGS_URL"), "api_key": setting("MEMBRAIN_EMBEDDING_API_KEY")}
     except NotConfigured:
         pass
     settings = value.setdefault("settings", {})
@@ -62,25 +62,25 @@ def save_settings_locked(data: SetupConfiguration, *, allow_database_change: boo
     for name, endpoint in (("CHAT", data.chat), ("EMBEDDING", data.embeddings)):
         if ("chat" if name == "CHAT" else "embeddings") not in data.model_fields_set:
             continue
-        url_key = "ORACLE_CHAT_COMPLETIONS_URL" if name == "CHAT" else "ORACLE_EMBEDDINGS_URL" if name == "EMBEDDING" else "ORACLE_TRANSCRIPTION_URL"
+        url_key = "MEMBRAIN_CHAT_COMPLETIONS_URL" if name == "CHAT" else "MEMBRAIN_EMBEDDINGS_URL" if name == "EMBEDDING" else "MEMBRAIN_TRANSCRIPTION_URL"
         settings[url_key] = endpoint.url if endpoint else ""
-        settings[f"ORACLE_{name}_MODEL"] = endpoint.model if endpoint else ""
-        settings[f"ORACLE_{name}_API_KEY"] = endpoint.api_key.get_secret_value() if endpoint and endpoint.api_key else ""
+        settings[f"MEMBRAIN_{name}_MODEL"] = endpoint.model if endpoint else ""
+        settings[f"MEMBRAIN_{name}_API_KEY"] = endpoint.api_key.get_secret_value() if endpoint and endpoint.api_key else ""
     if "embeddings" in data.model_fields_set and data.embeddings:
         p = data.embeddings.profile
         if p.model != data.embeddings.model:
             raise NotConfigured("Embedding endpoint model and profile model must match")
-        settings.update({"ORACLE_EMBEDDING_REVISION": p.revision, "ORACLE_EMBEDDING_DIMENSIONS": str(p.dimensions),
-                         "ORACLE_EMBEDDING_DOCUMENT_PREFIX": p.document_prefix, "ORACLE_EMBEDDING_QUERY_PREFIX": p.query_prefix})
+        settings.update({"MEMBRAIN_EMBEDDING_REVISION": p.revision, "MEMBRAIN_EMBEDDING_DIMENSIONS": str(p.dimensions),
+                         "MEMBRAIN_EMBEDDING_DOCUMENT_PREFIX": p.document_prefix, "MEMBRAIN_EMBEDDING_QUERY_PREFIX": p.query_prefix})
         value.setdefault("embedding_connections", {})[p.key] = {"url": data.embeddings.url,
             "api_key": data.embeddings.api_key.get_secret_value() if data.embeddings.api_key else None}
     elif "embeddings" in data.model_fields_set:
         # Explicit null disables embedding inference; omitted fields stay unchanged.
         value.pop("embedding_connections", None)
     if "database_mode" in data.model_fields_set:
-        settings["ORACLE_DATABASE_MODE"] = data.database_mode
+        settings["MEMBRAIN_DATABASE_MODE"] = data.database_mode
     write_config(value)
-    return {**safe_settings(), "environment_overrides": sorted(key for key, value in settings.items() if os.getenv(key) and os.getenv(key) != value)}
+    return {**safe_settings(), "environment_overrides": sorted(key for key, value in settings.items() if environment_value(key) and environment_value(key) != value)}
 
 
 def check_capabilities(capabilities: list[str]) -> dict:

@@ -13,7 +13,7 @@ from app.main import app
 from test_ingestion import asgi_call
 
 ROOT = Path(__file__).resolve().parents[2]
-spec = importlib.util.spec_from_file_location("oracle_codegen", ROOT / "tools/codegen/generate.py")
+spec = importlib.util.spec_from_file_location("membrain_codegen", ROOT / "tools/codegen/generate.py")
 codegen = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(codegen)
 

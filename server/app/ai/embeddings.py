@@ -39,14 +39,14 @@ class Profile(BaseModel):
 
 
 def configured_profile() -> Profile:
-    if not setting("ORACLE_EMBEDDINGS_URL") or not setting("ORACLE_EMBEDDING_REVISION"):
+    if not setting("MEMBRAIN_EMBEDDINGS_URL") or not setting("MEMBRAIN_EMBEDDING_REVISION"):
         raise NotConfigured("An embedding endpoint and pinned model/deployment revision are required")
     try:
-        return Profile(model=setting("ORACLE_EMBEDDING_MODEL", "nomic-embed-text-v1.5"),
-                       revision=setting("ORACLE_EMBEDDING_REVISION"),
-                       dimensions=int(setting("ORACLE_EMBEDDING_DIMENSIONS", "768")),
-                       document_prefix=setting("ORACLE_EMBEDDING_DOCUMENT_PREFIX", "search_document: ", allow_empty=True),
-                       query_prefix=setting("ORACLE_EMBEDDING_QUERY_PREFIX", "search_query: ", allow_empty=True))
+        return Profile(model=setting("MEMBRAIN_EMBEDDING_MODEL", "nomic-embed-text-v1.5"),
+                       revision=setting("MEMBRAIN_EMBEDDING_REVISION"),
+                       dimensions=int(setting("MEMBRAIN_EMBEDDING_DIMENSIONS", "768")),
+                       document_prefix=setting("MEMBRAIN_EMBEDDING_DOCUMENT_PREFIX", "search_document: ", allow_empty=True),
+                       query_prefix=setting("MEMBRAIN_EMBEDDING_QUERY_PREFIX", "search_query: ", allow_empty=True))
     except ValueError as exc:
         raise NotConfigured("Embedding profile settings are invalid") from exc
 
@@ -94,7 +94,7 @@ def validate_vector(result: dict, profile: Profile) -> list[float]:
 def get_embedding_client(profile: Profile) -> EmbeddingClient:
     try:
         if configured_profile().key == profile.key:
-            return CompatibleEmbeddingClient(setting("ORACLE_EMBEDDINGS_URL"), setting("ORACLE_EMBEDDING_API_KEY"))
+            return CompatibleEmbeddingClient(setting("MEMBRAIN_EMBEDDINGS_URL"), setting("MEMBRAIN_EMBEDDING_API_KEY"))
     except NotConfigured:
         pass
     connection = read_config().get("embedding_connections", {}).get(profile.key)

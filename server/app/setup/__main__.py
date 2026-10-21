@@ -10,7 +10,7 @@ from app.setup.service import save_settings, check_capabilities
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Configure Oracle's database and optional AI capabilities")
+    parser = argparse.ArgumentParser(description="Configure Membrain's database and optional AI capabilities")
     parser.add_argument("--file", type=Path, help="Read a SetupConfiguration JSON file instead of interactive questions")
     parser.add_argument("--migrate", action="store_true", help="Apply Alembic migrations after a successful database connection")
     args = parser.parse_args()

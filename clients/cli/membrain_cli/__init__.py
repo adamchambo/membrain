@@ -1,0 +1,1 @@
+"""Membrain CLI package scaffold."""

@@ -1,6 +1,6 @@
 {
-  "packageName": "oracle_sdk",
-  "projectName": "oracle-sdk",
+  "packageName": "membrain_sdk",
+  "projectName": "membrain-sdk",
   "packageVersion": "0.1.0",
   "library": "urllib3",
   "hideGenerationTimestamp": true,

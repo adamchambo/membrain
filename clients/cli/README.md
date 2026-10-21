@@ -1,4 +1,4 @@
-# Oracle CLI
+# Membrain CLI
 
 The CLI connects to the local FastAPI server through the generated Python SDK.
 No client authentication is used. LLM provider keys are stored in the server's
@@ -10,12 +10,12 @@ From the repository root, using Python 3.10+ (the existing project venv uses 3.1
 
 ```sh
 .venv/bin/python -m pip install -e sdk/python -e clients/cli
-.venv/bin/oracle
-.venv/bin/oracle setup
-.venv/bin/oracle --stub
+.venv/bin/membrain
+.venv/bin/membrain setup
+.venv/bin/membrain --stub
 ```
 
-- `oracle` opens the interactive menu. First launch or an unready database opens
+- `membrain` opens the interactive menu. First launch or an unready database opens
   setup automatically; setup can also be opened with `/setup` during a session.
 - Model setup first offers Local model (Ollama or LM Studio), Cloud provider
   (OpenAI or another compatible provider), or Custom endpoint. Local addresses
@@ -25,7 +25,7 @@ From the repository root, using Python 3.10+ (the existing project venv uses 3.1
 - `setup` configures an already running server. It selects the server address,
   reads readiness, and offers chat, embedding, database and validation settings.
 - `--stub` runs explicit demo responses without API requests or saved CLI state.
-- `--api-url URL` selects the server address, overriding `ORACLE_API_URL` and the
+- `--api-url URL` selects the server address, overriding `MEMBRAIN_API_URL` and the
   last saved address. The default is `http://127.0.0.1:8000`.
 - `--no-setup` skips automatic setup and uses the existing server settings.
 
@@ -45,7 +45,7 @@ Provider keys are entered without terminal echo and submitted only to server set
 
 The main menu includes Settings / setup and Help. `/help` displays commands at
 any session prompt; menus also accept `help`, `--help`, `-h` and `?`. From the shell,
-`oracle --help` lists startup options and `oracle setup` opens configuration.
+`membrain --help` lists startup options and `membrain setup` opens configuration.
 
 Use ↑/↓ to highlight a menu option and Enter to select it. Numbers and slash
 commands still work. Redirected input/output uses plain numbered menus. `0` returns in submenus; `x` exits at the main menu.
@@ -98,8 +98,8 @@ be pasted to inspect its work record. Completed learning results restore their s
 from server provenance. Scope limits are shown as errors so users can narrow a subject.
 
 Client state contains only server addresses, conversation/capture IDs and job IDs.
-It is stored per server in `$XDG_STATE_HOME/oracle/cli.json`, defaulting to
-`~/.local/state/oracle/cli.json`, with mode 0600. `ORACLE_CLI_STATE_FILE` overrides the
+It is stored per server in `$XDG_STATE_HOME/membrain/cli.json`, defaulting to
+`~/.local/state/membrain/cli.json`, with mode 0600. `MEMBRAIN_CLI_STATE_FILE` overrides the
 file path, useful for tests or separate installations. It stores no provider keys,
 explanation text or diagnostic answers.
 
@@ -120,5 +120,5 @@ PostgreSQL → worker journeys, including a real loopback HTTP request. Use the 
 server test runner described in `server/tests/README.md`. AI responses in these tests
 are injected; real-model quality and full Docker startup are separate acceptance work.
 
-The original `clients/cli/oracle.py` script remains available for its existing direct
-commands. The installed `oracle` command is the interactive client documented here.
+The original `clients/cli/membrain.py` script remains available for its existing direct
+commands. The installed `membrain` command is the interactive client documented here.

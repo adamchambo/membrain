@@ -1,5 +1,5 @@
 import Foundation
-import OracleSDK
+import MembrainSDK
 
 func object(_ data: Data) throws -> NSDictionary {
     try JSONSerialization.jsonObject(with: data) as! NSDictionary

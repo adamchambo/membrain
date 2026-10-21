@@ -19,6 +19,6 @@ Available local model: `qwen2.5-coder:3b-base`, served through Ollama's document
 No capture result passed the schema gate. Later failures were reported as
 `Unavailable`; the first run did not record their nested error types, so it does
 not establish whether transport or JSON validation failed. The harness now records
-the cause type for future runs. This model was not installed as Oracle's default.
+the cause type for future runs. This model was not installed as Membrain's default.
 No compatible embedding model was installed; embedding relevance remains untested.
 Injected provider tests verify API behavior, not real-model teaching quality.

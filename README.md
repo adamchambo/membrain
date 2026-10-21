@@ -1,6 +1,6 @@
-# Oracle
+# Membrain
 
-Oracle is an early-stage personal knowledge bank for recording what you understand as you learn, connecting it to familiar ideas, and revisiting it later. You explain a concept in your own words; AI may format that explanation for storage while preserving its meaning and uncertainty. Possible corrections and gaps are separate suggestions, not silent changes to your understanding. The intended experience also includes related concepts and review. Those product flows are still being shaped.
+Membrain is an early-stage personal knowledge bank for recording what you understand as you learn, connecting it to familiar ideas, and revisiting it later. You explain a concept in your own words; AI may format that explanation for storage while preserving its meaning and uncertainty. Possible corrections and gaps are separate suggestions, not silent changes to your understanding. The intended experience also includes related concepts and review. Those product flows are still being shaped.
 
 This repository contains a FastAPI server, PostgreSQL with pgvector, a background worker, and a small CLI. The API supports conversational capture, search, subject-scoped review, source uploads, learning suggestions and lessons, map data, and portable bank export/import. Graphical clients and hosted accounts remain future work. Real-model learning quality is still being evaluated.
 
@@ -13,14 +13,14 @@ This repository contains a FastAPI server, PostgreSQL with pgvector, a backgroun
 
 ## Start the existing native installation
 
-From this checkout, run `./start`, or run `/Users/adam/projects/oracle/start` from
+From this checkout, run `./start`, or run `/Users/adam/projects/membrain/start` from
 any directory. It loads `.env`, starts the existing native PostgreSQL cluster if
 needed, applies migrations, starts the local API and a session worker, and opens
 the interactive CLI. Logs go to ignored `.local/logs/`.
 
 `./start setup` opens the wizard instead of the main menu. `--port 8001` selects a
 different local API port; `--no-setup` skips automatic first-run setup. An existing
-Oracle API on the selected port is reused, and its migrations are left alone.
+Membrain API on the selected port is reused, and its migrations are left alone.
 
 Exiting the CLI or interrupting the launcher stops only API/worker processes owned
 by that launcher. PostgreSQL remains running. Queued work remains saved for the next
@@ -30,7 +30,7 @@ uses a separate container database.
 
 ## Run locally with Docker
 
-1. Create a root `.env` with `ORACLE_DB_PASSWORD` (see `.env.example`).
+1. Create a root `.env` with `MEMBRAIN_DB_PASSWORD` (see `.env.example`).
 2. Run `docker compose up --build`.
 3. Open `http://127.0.0.1:8000/health` to check the API. The route contracts and request parameters are shown at `http://127.0.0.1:8000/docs` (OpenAPI JSON: `/openapi.json`).
 
@@ -62,7 +62,7 @@ and [local-model evaluation](server/evaluations/README.md). Voice transcription 
 From the repository root, start or resume a capture conversation:
 
 ```sh
-python3 clients/cli/oracle.py chat
+python3 clients/cli/membrain.py chat
 ```
 
 Say what you are learning, then add your understanding. `/show` inspects the latest capture, `/undo` retracts its latest derived learning, and `/new` starts a new conversation. The native quick-window interface is still planned. See [CLI usage](clients/cli/README.md) and [isolated database tests](server/tests/README.md).
@@ -82,6 +82,16 @@ See [generation and verification](tools/codegen/README.md) and the
 
 Install the local client and generated SDK with
 `.venv/bin/python -m pip install -e sdk/python -e clients/cli`, then run
-`.venv/bin/oracle`. Run `.venv/bin/oracle setup` for configuration, or
-`.venv/bin/oracle --stub` for an offline navigation demo.
+`.venv/bin/membrain`. Run `.venv/bin/membrain setup` for configuration, or
+`.venv/bin/membrain --stub` for an offline navigation demo.
 See [CLI flows, settings and checks](clients/cli/README.md).
+
+## Rename compatibility
+
+The product and checkout are now Membrain. Run `.venv/bin/membrain` or `./start`.
+The old `oracle` executable remains an alias. Server settings accept legacy
+`ORACLE_*` environment variables and saved configuration keys; `MEMBRAIN_*`
+values take precedence. Existing CLI resume IDs are read from the old `oracle`
+state directory until first save into `membrain`. Legacy `oracle.bank.v1` exports
+remain importable. Database roles, database names and Docker volume identities
+are retained so the rename does not create an empty knowledge bank.

@@ -1,4 +1,4 @@
-"""Single declarative registry for Oracle database models."""
+"""Single declarative registry for Membrain database models."""
 
 from sqlalchemy.orm import DeclarativeBase
 

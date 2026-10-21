@@ -1,9 +1,9 @@
 """Transport failures are safe and actionable; secret validation input stays hidden."""
 import json
 import unittest
-from oracle_cli.api import SDKBackend
-from oracle_cli.types import ClientError
-from oracle_sdk.exceptions import ApiException
+from membrain_cli.api import SDKBackend
+from membrain_cli.types import ClientError
+from membrain_sdk.exceptions import ApiException
 from urllib3.exceptions import MaxRetryError
 
 

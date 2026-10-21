@@ -84,7 +84,7 @@ class OutputTests(unittest.TestCase):
             FeedbackOutput(recall="consistent", feedback="Good", correctness="verified")
 
     def test_embedding_prefix_dimension_and_finite_values(self):
-        with patch.dict(os.environ, {"ORACLE_EMBEDDINGS_URL": "http://test/embeddings", "ORACLE_EMBEDDING_REVISION": "weights-v1", "ORACLE_EMBEDDING_DIMENSIONS": "3"}):
+        with patch.dict(os.environ, {"MEMBRAIN_EMBEDDINGS_URL": "http://test/embeddings", "MEMBRAIN_EMBEDDING_REVISION": "weights-v1", "MEMBRAIN_EMBEDDING_DIMENSIONS": "3"}):
             profile = configured_profile()
             with patch("app.ai.embeddings.post_json", return_value={"data": [{"embedding": [3, 4, 0]}]}) as transport:
                 self.assertEqual(embed("my explanation", profile), [0.6, 0.8, 0.0])
@@ -101,11 +101,11 @@ class OutputTests(unittest.TestCase):
 class IngestionTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        url = os.getenv("ORACLE_TEST_DATABASE_URL")
+        url = os.getenv("MEMBRAIN_TEST_DATABASE_URL")
         if not url:
-            raise unittest.SkipTest("Set ORACLE_TEST_DATABASE_URL or use tests/run_postgres.py")
-        if not (make_url(url).database or "").startswith("oracle_test_"):
-            raise RuntimeError("Refusing tests outside a database named oracle_test_*")
+            raise unittest.SkipTest("Set MEMBRAIN_TEST_DATABASE_URL or use tests/run_postgres.py")
+        if not (make_url(url).database or "").startswith("membrain_test_"):
+            raise RuntimeError("Refusing tests outside a database named membrain_test_*")
         cls.engine = create_engine(url)
 
     @classmethod
@@ -118,9 +118,9 @@ class IngestionTests(unittest.TestCase):
         with self.engine.begin() as db:
             db.execute(text(f"TRUNCATE {names} CASCADE"))
         self.config_directory = tempfile.TemporaryDirectory()
-        self.settings = patch.dict(os.environ, {"ORACLE_CONFIG_FILE": self.config_directory.name + "/config.json", "ORACLE_CHAT_COMPLETIONS_URL": "", "ORACLE_CHAT_MODEL": "",
-            "ORACLE_EMBEDDINGS_URL": "http://test/embeddings", "ORACLE_EMBEDDING_REVISION": "test-weights-v1",
-            "ORACLE_EMBEDDING_DIMENSIONS": "3"})
+        self.settings = patch.dict(os.environ, {"MEMBRAIN_CONFIG_FILE": self.config_directory.name + "/config.json", "MEMBRAIN_CHAT_COMPLETIONS_URL": "", "MEMBRAIN_CHAT_MODEL": "",
+            "MEMBRAIN_EMBEDDINGS_URL": "http://test/embeddings", "MEMBRAIN_EMBEDDING_REVISION": "test-weights-v1",
+            "MEMBRAIN_EMBEDDING_DIMENSIONS": "3"})
         self.settings.start()
 
         def session_dependency():
@@ -234,8 +234,8 @@ class IngestionTests(unittest.TestCase):
         thread.start()
         base = f"http://127.0.0.1:{server.server_port}"
         try:
-            with patch.dict(os.environ, {"ORACLE_CHAT_COMPLETIONS_URL": base + "/chat", "ORACLE_CHAT_MODEL": "test-chat",
-                                        "ORACLE_EMBEDDINGS_URL": base + "/embeddings"}):
+            with patch.dict(os.environ, {"MEMBRAIN_CHAT_COMPLETIONS_URL": base + "/chat", "MEMBRAIN_CHAT_MODEL": "test-chat",
+                                        "MEMBRAIN_EMBEDDINGS_URL": base + "/embeddings"}):
                 receipt = self.save("Binary uses two symbols.")
                 self.assertEqual(len(self.rows(Capture)), 1)
                 self.assertEqual(seen, [])  # The save request never waits for inference.

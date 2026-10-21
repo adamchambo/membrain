@@ -1,15 +1,15 @@
 # Tests
 
 Run pure output-validation tests with `python -m unittest discover -s tests -v`
-from `server/`. Database cases skip unless `ORACLE_TEST_DATABASE_URL` names an
-explicitly disposable `oracle_test_*` database.
+from `server/`. Database cases skip unless `MEMBRAIN_TEST_DATABASE_URL` names an
+explicitly disposable `membrain_test_*` database.
 
-For the full suite, set `ORACLE_TEST_ADMIN_URL` to a development PostgreSQL admin
+For the full suite, set `MEMBRAIN_TEST_ADMIN_URL` to a development PostgreSQL admin
 connection and run `python tests/run_postgres.py`. This creates a unique disposable
 database, applies all migrations, checks ORM drift, runs the suite, exercises the new
 migrations' downgrade/upgrade path, and removes only that test database in `finally`.
 It also uses `pg_dump` and `pg_restore` to restore a second disposable database and
-compare all mapped table contents. Set `ORACLE_PG_BIN` when the utilities are outside
+compare all mapped table contents. Set `MEMBRAIN_PG_BIN` when the utilities are outside
 PATH (the local fallback is Homebrew PostgreSQL 18).
 The admin connection's existing database is never used for fixtures.
 
@@ -30,4 +30,4 @@ CLI SDK journeys also cover capture/search/review, real loopback HTTP transport,
 possible-gap diagnostics and separate lessons, resource browsing, subject scope,
 conversation pagination, local resume IDs, and partial provider configuration.
 Install the local SDK/client packages before running these cases; the database
-fixtures still require the disposable `oracle_test_*` guard.
+fixtures still require the disposable `membrain_test_*` guard.

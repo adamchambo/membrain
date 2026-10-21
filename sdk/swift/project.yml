@@ -1,6 +1,6 @@
-name: OracleSDK
+name: MembrainSDK
 targets:
-  OracleSDK:
+  MembrainSDK:
     type: framework
     platform: iOS
     deploymentTarget: "11.0"

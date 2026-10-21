@@ -1,7 +1,7 @@
 """Normal learning screens present content instead of transport/provenance internals."""
 import unittest
-from oracle_cli.output import show
-from oracle_cli.types import Context, Result
+from membrain_cli.output import show
+from membrain_cli.types import Context, Result
 
 
 class OutputTests(unittest.TestCase):

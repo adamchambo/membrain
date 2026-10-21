@@ -2,10 +2,10 @@
 import unittest
 from dataclasses import replace
 from uuid import uuid4
-from oracle_cli.session import Session
-from oracle_cli.stub_api import StubAPI, DEMO
-from oracle_cli.types import ClientError, Context, Job, Result
-from oracle_cli.jobs import Monitor
+from membrain_cli.session import Session
+from membrain_cli.stub_api import StubAPI, DEMO
+from membrain_cli.types import ClientError, Context, Job, Result
+from membrain_cli.jobs import Monitor
 
 
 class QuietMonitor:

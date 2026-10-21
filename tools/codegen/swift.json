@@ -1,5 +1,5 @@
 {
-  "projectName": "OracleSDK",
+  "projectName": "MembrainSDK",
   "library": "urlsession",
   "responseAs": "AsyncAwait",
   "apiStaticMethod": false,

@@ -29,14 +29,14 @@ def fingerprint(engine):
 
 
 def verify(admin_url, source_url):
-    if not (make_url(source_url).database or "").startswith("oracle_test_"):
+    if not (make_url(source_url).database or "").startswith("membrain_test_"):
         raise RuntimeError("Backup verification requires a disposable source database")
-    directory = Path(os.getenv("ORACLE_PG_BIN", "/opt/homebrew/opt/postgresql@18/bin"))
+    directory = Path(os.getenv("MEMBRAIN_PG_BIN", "/opt/homebrew/opt/postgresql@18/bin"))
     dump = shutil.which("pg_dump") or str(directory / "pg_dump")
     restore = shutil.which("pg_restore") or str(directory / "pg_restore")
     if not Path(dump).is_file() or not Path(restore).is_file():
-        raise RuntimeError("Set ORACLE_PG_BIN to matching PostgreSQL backup utilities")
-    name = "oracle_test_restore_" + uuid4().hex
+        raise RuntimeError("Set MEMBRAIN_PG_BIN to matching PostgreSQL backup utilities")
+    name = "membrain_test_restore_" + uuid4().hex
     url = make_url(admin_url).set(database=name)
     admin = create_engine(admin_url, isolation_level="AUTOCOMMIT")
     source = create_engine(source_url)

@@ -1,1 +1,1 @@
-"""Oracle server application."""
+"""Membrain server application."""

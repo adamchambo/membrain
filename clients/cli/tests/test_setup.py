@@ -4,9 +4,9 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace as NS
 import unittest
 from uuid import uuid4
-from oracle_cli.config import Store, server_url
-from oracle_cli.types import ClientError, Context, Job
-from oracle_cli.wizard.flow import run
+from membrain_cli.config import Store, server_url
+from membrain_cli.types import ClientError, Context, Job
+from membrain_cli.wizard.flow import run
 
 
 class SetupTests(unittest.TestCase):
@@ -46,7 +46,7 @@ class SetupTests(unittest.TestCase):
         self.assertTrue(run(Fake(),read=read,write=lambda _:None))
 
     def test_local_provider_defaults_and_no_key_prompt(self):
-        from oracle_cli.wizard import models
+        from membrain_cli.wizard import models
         for runtime, port in [('1', '11434'), ('2', '1234')]:
             answers = iter(['1', runtime, '', 'installed-model'])
             def no_secret(prompt): raise AssertionError('Local model needs no key')
@@ -55,7 +55,7 @@ class SetupTests(unittest.TestCase):
             self.assertIsNone(result.api_key)
 
     def test_custom_endpoint_and_cloud_provider(self):
-        from oracle_cli.wizard import models
+        from membrain_cli.wizard import models
         answers = iter(['3', 'http://localhost:9000/v1/chat/completions', 'model'])
         result = models.chat(lambda prompt: next(answers), lambda prompt: '')
         self.assertEqual(result.url, 'http://localhost:9000/v1/chat/completions')
@@ -65,7 +65,7 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(result.api_key.get_secret_value(), 'secret')
 
     def test_embedding_provider_preserves_profile(self):
-        from oracle_cli.wizard import models
+        from membrain_cli.wizard import models
         answers = iter(['1', '1', '', 'nomic-embed-text', 'revision-1', '768', 'y'])
         result = models.embeddings(lambda prompt: next(answers), lambda prompt: self.fail('No key needed'))
         self.assertEqual(result.url, 'http://localhost:11434/v1/embeddings')
@@ -73,7 +73,22 @@ class SetupTests(unittest.TestCase):
         self.assertEqual(result.profile.document_prefix, 'search_document: ')
 
     def test_back_from_provider_does_not_save(self):
-        from oracle_cli.wizard import models
+        from membrain_cli.wizard import models
         answers = iter(['1', '0'])
         with self.assertRaises(models.Cancelled):
             models.chat(lambda prompt: next(answers), lambda prompt: '')
+
+    def test_brand_rename_restores_old_state_and_writes_new_path(self):
+        import json, os
+        from unittest.mock import patch
+        with TemporaryDirectory() as directory, patch.dict(os.environ, {'XDG_STATE_HOME': directory}, clear=True):
+            legacy = Path(directory) / 'oracle/cli.json'
+            legacy.parent.mkdir()
+            identifier = str(uuid4())
+            legacy.write_text(json.dumps({'api_url':'http://localhost:8000', 'servers':{'http://localhost:8000':{'conversation_id':identifier}}}))
+            store = Store()
+            self.assertEqual(str(store.resume(store.api_url).conversation_id), identifier)
+            self.assertEqual(store.path, Path(directory) / 'membrain/cli.json')
+            store.save(store.api_url)
+            self.assertEqual(str(Store().resume(store.api_url).conversation_id), identifier)
+            self.assertTrue(legacy.exists())

@@ -1,4 +1,4 @@
-"""Alembic environment for Oracle's PostgreSQL database."""
+"""Alembic environment for Membrain's PostgreSQL database."""
 
 from alembic import context
 from sqlalchemy import create_engine, pool

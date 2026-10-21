@@ -3,14 +3,15 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "oracle-cli"
+name = "membrain-cli"
 version = "0.1.0"
-description = "Oracle local API terminal client"
+description = "Membrain local API terminal client"
 requires-python = ">=3.10"
-dependencies = ["oracle-sdk==0.1.0", "prompt-toolkit>=3.0.52,<4"]
+dependencies = ["membrain-sdk==0.1.0", "prompt-toolkit>=3.0.52,<4"]
 
 [project.scripts]
-oracle = "oracle_cli.__main__:main"
+membrain = "membrain_cli.__main__:main"
+oracle = "membrain_cli.__main__:main"
 
 [tool.setuptools.packages.find]
-include = ["oracle_cli*"]
+include = ["membrain_cli*"]

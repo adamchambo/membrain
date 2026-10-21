@@ -1,4 +1,4 @@
-"""Enable pgvector in the Oracle database."""
+"""Enable pgvector in the Membrain database."""
 
 from typing import Sequence, Union
 

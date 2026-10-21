@@ -49,7 +49,7 @@ def export_bank(db):
         if total > 10000:
             raise Conflict("Portable JSON is limited to 10000 records; use a database backup for this bank")
         tables[name] = [{key: encode(value) for key, value in row.items()} for row in rows]
-    result = {"format": "oracle.bank.v1", "tables": tables,
+    result = {"format": "membrain.bank.v1", "tables": tables,
               "excluded": ["credentials", "embedding_vectors", "runtime_jobs", "audio", "provider_connections"]}
     if len(json.dumps(result).encode()) > 32 * 1024 * 1024:
         raise Conflict("Portable JSON is limited to 32 MiB; use a database backup for this bank")
@@ -57,7 +57,7 @@ def export_bank(db):
 
 
 def validate(document):
-    if document.get("format") != "oracle.bank.v1" or not isinstance(document.get("tables"), dict) or set(document["tables"]) != set(TABLES):
+    if document.get("format") not in ("membrain.bank.v1", "oracle.bank.v1") or not isinstance(document.get("tables"), dict) or set(document["tables"]) != set(TABLES):
         raise Conflict("Unsupported portable format or table set")
     serialized = json.dumps(document, sort_keys=True)
     if len(serialized.encode()) > 32 * 1024 * 1024:

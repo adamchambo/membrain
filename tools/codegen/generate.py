@@ -89,7 +89,7 @@ def main() -> None:
     if version != VERSION:
         raise SystemExit(f"Expected OpenAPI Generator {VERSION}; found {version}")
     targets = TARGETS if args.target == "all" else {args.target: TARGETS[args.target]}
-    with tempfile.TemporaryDirectory(prefix="oracle-codegen-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="membrain-codegen-") as temporary:
         temp = Path(temporary)
         spec = temp / "openapi.json"
         spec.write_bytes(encoded)
@@ -107,11 +107,15 @@ def main() -> None:
                 result = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT)
             if result.returncode:
                 raise SystemExit(log.read_text())
+            # Normalize generator README line endings/whitespace for clean source diffs.
+            readme = temp / name / "README.md"
+            if readme.exists():
+                readme.write_text("\n".join(line.rstrip() for line in readme.read_text().splitlines()) + "\n")
             # This generator manifest embeds temporary paths; it is not SDK source.
             manifest = temp / name / ".openapi-generator/FILES"
             if manifest.exists():
                 manifest.unlink()
-            (temp / name / ".oracle-generated").write_text(f"OpenAPI Generator {VERSION}\n")
+            (temp / name / ".membrain-generated").write_text(f"OpenAPI Generator {VERSION}\n")
             print(f"Generated {name}")
         if args.action == "check":
             failures = []
@@ -129,7 +133,7 @@ def main() -> None:
             return
         for name in targets:
             destination = ROOT / "sdk" / name
-            if destination.exists() and not (destination / ".oracle-generated").exists():
+            if destination.exists() and not (destination / ".membrain-generated").exists():
                 raise SystemExit(f"Refusing to replace unmanaged directory: {destination}")
         contract.parent.mkdir(parents=True, exist_ok=True)
         contract.write_bytes(encoded)

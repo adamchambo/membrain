@@ -3,12 +3,12 @@ import json
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "sdk/python"))
-from oracle_sdk import ApiClient, Configuration
-from oracle_sdk.api.captures_api import CapturesApi
-from oracle_sdk.models.resource_patch import ResourcePatch
-from oracle_sdk.models.validation_error_response import ValidationErrorResponse
-from oracle_sdk.models.capture_receipt import CaptureReceipt
-from oracle_sdk.models.quick_capture import QuickCapture
+from membrain_sdk import ApiClient, Configuration
+from membrain_sdk.api.captures_api import CapturesApi
+from membrain_sdk.models.resource_patch import ResourcePatch
+from membrain_sdk.models.validation_error_response import ValidationErrorResponse
+from membrain_sdk.models.capture_receipt import CaptureReceipt
+from membrain_sdk.models.quick_capture import QuickCapture
 from urllib3.response import HTTPResponse
 
 for raw in ({}, {"title": None}, {"note": None}, {"title": "Updated"}):

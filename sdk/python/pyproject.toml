@@ -1,12 +1,12 @@
 [project]
-name = "oracle_sdk"
+name = "membrain_sdk"
 version = "0.1.0"
-description = "Oracle API"
+description = "Membrain API"
 authors = [
   {name = "OpenAPI Generator Community",email = "team@openapitools.org"},
 ]
 readme = "README.md"
-keywords = ["OpenAPI", "OpenAPI-Generator", "Oracle API"]
+keywords = ["OpenAPI", "OpenAPI-Generator", "Membrain API"]
 requires-python = ">=3.10"
 
 dependencies = [
@@ -39,7 +39,7 @@ extension-pkg-whitelist = "pydantic"
 
 [tool.mypy]
 files = [
-  "oracle_sdk",
+  "membrain_sdk",
   #"test",  # auto-generated tests
   "tests", # hand-written tests
 ]
@@ -77,7 +77,7 @@ disallow_any_generics = true
 
 [[tool.mypy.overrides]]
 module = [
-  "oracle_sdk.configuration",
+  "membrain_sdk.configuration",
 ]
 warn_unused_ignores = true
 strict_equality = true
