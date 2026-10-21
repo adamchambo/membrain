@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Launch Oracle's native local stack and terminal client from any directory.
+set -euo pipefail
+umask 077
+ORACLE_LAUNCH_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ORACLE_LAUNCH_ROOT"
+if [[ ! -x .venv/bin/python ]]; then
+  echo 'Missing .venv/bin/python. Set up the project virtual environment first.' >&2
+  exit 1
+fi
+if [[ -f .env ]]; then
+  set -a
+  source .env
+  set +a
+fi
+exec .venv/bin/python tools/start_local.py "$@"

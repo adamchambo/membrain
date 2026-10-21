@@ -11,7 +11,24 @@ This repository contains a FastAPI server, PostgreSQL with pgvector, a backgroun
 - `compose.yaml` — local server and database setup.
 - `planning/` — local, Git-ignored working documents.
 
-## Run locally
+## Start the existing native installation
+
+From this checkout, run `./start`, or run `/Users/adam/projects/oracle/start` from
+any directory. It loads `.env`, starts the existing native PostgreSQL cluster if
+needed, applies migrations, starts the local API and a session worker, and opens
+the interactive CLI. Logs go to ignored `.local/logs/`.
+
+`./start setup` opens the wizard instead of the main menu. `--port 8001` selects a
+different local API port; `--no-setup` skips automatic first-run setup. An existing
+Oracle API on the selected port is reused, and its migrations are left alone.
+
+Exiting the CLI or interrupting the launcher stops only API/worker processes owned
+by that launcher. PostgreSQL remains running. Queued work remains saved for the next
+worker run. The launcher uses this Mac's existing `.local/postgres` and `.venv`; it
+doesn't create a new database or install packages. The Compose alternative below
+uses a separate container database.
+
+## Run locally with Docker
 
 1. Create a root `.env` with `ORACLE_DB_PASSWORD` (see `.env.example`).
 2. Run `docker compose up --build`.
