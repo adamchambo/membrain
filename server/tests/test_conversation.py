@@ -3,6 +3,7 @@
 import json
 import unittest
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 from uuid import UUID, uuid4
 
 from sqlalchemy import func, select, update
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session
 
 import test_ingestion as support
 from app.captures.ai_schemas import Understanding
-from app.captures.models import Capture, Conversation
+from app.captures.models import AIProposal, Capture, Conversation
 from app.conversation.ai_schemas import RecallOutput
 from app.conversation.learning import recall_reply
 from app.captures.prompts.formatting import CAPTURE_PROMPT
@@ -212,6 +213,35 @@ class ConversationTests(unittest.TestCase):
         wider = self.send("Cue cards from the last two weeks", Model(router=intents({"action": "practice", "period": "last_n_days", "days": 14,
                           "format": "cue_card"}), question={"question": "Explain binary in your own words."}))
         self.assertIn("Here is 1 cue card from everything you've saved over the past 14 days", wider["reply"])
+
+    def bank_paraphrase(self, vector):
+        """Save "Stacks", embed it as [1, 0, 0], then restate it elsewhere as a model-labelled new idea."""
+        self.bank("Stacks", "A stack is last in, first out.")
+        job = next(x for x in self.rows(WorkItem) if x.kind == "embedding")
+        run_one(self.engine, job_id=job.id, embedder=lambda text, profile: [1.0, 0.0, 0.0])
+        restated = "The last item pushed onto a stack is the first one popped."
+        model = Model(router=intents({"action": "bank"}), capture=capture(item("Stack order", restated)))
+        with patch("app.captures.ingestion.embed", return_value=vector):
+            return self.send(restated, model)
+
+    def test_paraphrase_saved_as_new_attaches_to_the_same_concept(self):
+        turn = self.bank_paraphrase([0.99, 0.14, 0.0])
+        self.assertEqual(turn["status"], "completed", turn)
+        self.assertIn("same idea as your saved “Stacks”", turn["reply"])
+        concept = self.rows(Concept)[0]
+        self.assertEqual(len(self.rows(Concept)), 1)
+        with Session(self.engine) as db:
+            latest = db.scalar(select(ExplanationRevision).where(ExplanationRevision.concept_id == concept.id)
+                               .order_by(ExplanationRevision.revision_number.desc()).limit(1))
+            proposal = db.scalar(select(AIProposal).where(AIProposal.capture_id == latest.capture_id))
+        self.assertEqual(latest.revision_number, 2)
+        self.assertEqual(latest.body, "A stack is last in, first out.\n\nThe last item pushed onto a stack is the first one popped.")
+        self.assertEqual(proposal.payload["attached_by_similarity"][0]["concept_id"], str(concept.id))
+
+    def test_a_different_idea_below_the_threshold_stays_separate(self):
+        turn = self.bank_paraphrase([0.0, 1.0, 0.0])
+        self.assertIn("Saved your explanation of “Stack order”", turn["reply"])
+        self.assertEqual(len(self.rows(Concept)), 2)
 
     def test_topic_scope_ranks_title_matches_before_broad_subject_members(self):
         self.bank("Binary numbers", "Binary uses two symbols.")

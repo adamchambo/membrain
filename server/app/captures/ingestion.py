@@ -100,6 +100,9 @@ def conversation_history(db: Session, conversation_id: UUID, cursor: str | None,
 MAX_CANDIDATES = 10
 CANDIDATE_CHARACTERS = 600
 SEMANTIC_MINIMUM = 0.6
+# Document-to-document cosine at which a "new" understanding is attached to an existing
+# concept. Set for Nomic; recheck on a few real paraphrases when the embedding model changes.
+MERGE_MINIMUM = 0.85
 
 
 def query_vector(engine, raw_text: str) -> tuple[list[float], str] | None:
@@ -170,6 +173,49 @@ def capture_context(db: Session, capture: Capture, query: tuple[list[float], str
             "reply_to_proposal_id": str(capture.reply_to_proposal_id) if capture.reply_to_proposal_id else None}
 
 
+def attach_paraphrases(engine, raw_text: str, output: CaptureOutput, context: dict) -> CaptureOutput:
+    """Point new understandings at an existing concept whose current explanation means the same.
+
+    The capture model decides identity from the candidates it was shown; this catches the
+    paraphrases it labels as new, so one idea keeps one concept and one current vector.
+    Embedding happens outside any transaction. Without vectors the output is unchanged.
+    """
+    fresh = [index for index, item in enumerate(output.understandings) if item.existing_concept_id is None
+             and all(excerpt in raw_text for excerpt in item.source_excerpts)]
+    if not fresh:
+        return output
+    from app.discovery.service import vector_search
+    from app.setup.profiles import active_profile
+    try:
+        with Session(engine) as db, db.begin():
+            profile = active_profile(db)
+            if not db.scalar(select(exists().where(ConceptEmbedding.model_key == profile.key))):
+                return output
+        vectors = {index: embed(source_explanation(raw_text, output.understandings[index].source_excerpts)[:4000], profile)
+                   for index in fresh}
+    except (NotConfigured, Unavailable):
+        return output
+    taken = {item.existing_concept_id for item in output.understandings if item.existing_concept_id}
+    known = {row["id"] for row in context["existing_concepts"]}
+    understandings, attached = list(output.understandings), []
+    with Session(engine) as db:
+        for index, vector in vectors.items():
+            hit = next(iter(vector_search(db, vector, profile.key, 1)), None)
+            if hit is None or hit.similarity is None or hit.similarity < MERGE_MINIMUM or hit.id in taken:
+                continue
+            if str(hit.id) not in known:
+                body = db.get(ExplanationRevision, hit.revision_id).body
+                context["existing_concepts"].append({"id": str(hit.id), "title": hit.title, "revision_id": str(hit.revision_id),
+                                                     "explanation": body[:CANDIDATE_CHARACTERS]})
+                known.add(str(hit.id))
+            understandings[index] = understandings[index].model_copy(update={"existing_concept_id": hit.id})
+            taken.add(hit.id)
+            attached.append({"proposed_title": understandings[index].title, "concept_id": str(hit.id),
+                             "similarity": round(hit.similarity, 3)})
+    context["attached_by_similarity"] = attached
+    return output.model_copy(update={"understandings": understandings})
+
+
 def validate_sources(output: CaptureOutput, raw_text: str, context: dict) -> None:
     allowed_ids = {UUID(row["id"]) for row in context["existing_concepts"]}
     for understanding in output.understandings:
@@ -230,6 +276,8 @@ def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: 
     payload = {**output.model_dump(mode="json"),
                "context_revision_ids": {str(key): str(previous_by_id[key]) for key in target_ids},
                "application_policy": "verbatim-user-sentences.v1"}
+    if context.get("attached_by_similarity"):
+        payload["attached_by_similarity"] = context["attached_by_similarity"]
     for row, body in zip(payload["understandings"], applied_bodies):
         if row["explanation_text"] != body:
             row["unapplied_model_draft"] = row["explanation_text"]
@@ -240,6 +288,7 @@ def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: 
     db.flush()
     conversation = db.get(Conversation, capture.conversation_id) if capture.conversation_id else None
     index = subject_index(db)
+    attached_ids = {row["concept_id"] for row in context.get("attached_by_similarity", [])}
     if output.topic_subject and conversation is not None:
         conversation.subject_id = ensure_subject(db, output.topic_subject.title, output.topic_subject.aliases, index).id
     banked = []
@@ -267,7 +316,8 @@ def apply_output(db: Session, capture: Capture, output: CaptureOutput, context: 
             assign(db, subject.id, concept.id, capture.id)
             subjects.append(subject.title)
         banked.append({"concept_id": str(concept.id), "title": concept.title, "revision_id": str(revision.id),
-                       "created": created, "subjects": list(dict.fromkeys(subjects)), "body": body})
+                       "created": created, "subjects": list(dict.fromkeys(subjects)), "body": body,
+                       "same_idea": str(concept.id) in attached_ids})
     clarification_id = None
     if output.clarifications:
         clarification = AIProposal(capture_id=capture.id, kind="clarification",

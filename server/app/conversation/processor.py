@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from app.ai.client import ChatClient, get_chat_client
 from app.ai.structured import generate
 from app.captures.formatter import CaptureAI
-from app.captures.ingestion import DeferredWork, apply_output, capture_context, query_vector
+from app.captures.ingestion import DeferredWork, apply_output, attach_paraphrases, capture_context, query_vector
 from app.captures.models import Capture, Conversation
 from app.captures.prompts.formatting import CAPTURE_VERSION
 from app.conversation.interpret import Intent, RouterOutput, route
@@ -193,7 +193,7 @@ def bank(run: TurnRun, index: int, intent: Intent, count: int) -> None:
     query = run.vector(run.message)
     with Session(run.engine) as db:
         context = capture_context(db, db.get(Capture, run.capture_id), query)
-    output = CaptureAI(run.client).process(run.message, context)
+    output = attach_paraphrases(run.engine, run.message, CaptureAI(run.client).process(run.message, context), context)
 
     def apply(db):
         capture = db.scalar(select(Capture).where(Capture.id == run.capture_id).with_for_update())
@@ -210,8 +210,12 @@ def bank_reply(summary: dict, *, alone: bool) -> str:
     lines = []
     for row in summary["banked"]:
         where = f" (filed under {', '.join(row['subjects'])})" if row["subjects"] else ""
-        lines.append(f"Saved your explanation of “{row['title']}”{where}, in your own words." if row["created"]
-                     else f"Added this to your saved understanding of “{row['title']}”{where}.")
+        if row["created"]:
+            lines.append(f"Saved your explanation of “{row['title']}”{where}, in your own words.")
+        elif row.get("same_idea"):
+            lines.append(f"This reads as the same idea as your saved “{row['title']}”, so I added it there{where}.")
+        else:
+            lines.append(f"Added this to your saved understanding of “{row['title']}”{where}.")
     if not lines and summary.get("subject"):
         lines.append(f"Noted: you're learning about {summary['subject']}. Tell me what you understand so far and I'll save it in your words.")
     elif not lines and alone:

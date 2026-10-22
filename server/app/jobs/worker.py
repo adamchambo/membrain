@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.ai.embeddings import Profile, configured_profile, embed, persist_profile
 from app.captures.formatter import get_formatter
-from app.captures.ingestion import DeferredWork, apply_output, capture_context, query_vector
+from app.captures.ingestion import DeferredWork, apply_output, attach_paraphrases, capture_context, query_vector
 from app.captures.models import Capture
 from app.database import db_engine
 from app.errors import AppError, NotConfigured
@@ -71,7 +71,7 @@ def process_capture(engine: Engine, job_id: UUID, token: UUID, processor=None):
             context = capture_context(db, db.get(Capture, capture_id), query)
     if context is not None:
         processor = processor or get_formatter()
-        output = processor.process(raw_text, context)
+        output = attach_paraphrases(engine, raw_text, processor.process(raw_text, context), context)
     with Session(engine) as db, db.begin():
         job = owned_job(db, job_id, token)
         if job is None:
