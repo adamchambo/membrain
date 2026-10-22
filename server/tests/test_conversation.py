@@ -197,6 +197,40 @@ class ConversationTests(unittest.TestCase):
         self.assertEqual((need.evidence, need.status), ("observed_in_answer", "exploring"))
         self.assertEqual(sorted(e.kind for e in self.rows(LearningNeedEvent)), ["answered", "asked", "suspected"])
 
+    def test_diagnosis_offers_missing_topics_beside_misconceptions(self):
+        self.bank("Logic gates", "Logic gates combine voltages into 0s and 1s.", subjects=["Computing"])
+        self.bank("Web servers", "A web server answers requests by reading the URL.", subjects=["Computing"])
+        self.bank("CPU registers", "I think registers are stored on the hard drive.", subjects=["Computing"])
+        concepts = {c.title: str(c.id) for c in self.rows(Concept)}
+
+        def diagnose(payload):
+            self.assertEqual(payload["subject"]["title"], "Computing")
+            self.assertEqual(len(payload["subject"]["concepts"]), 3)
+            return {"findings": [{"concept_id": concepts["CPU registers"], "kind": "misconception", "summary": "Registers are inside the CPU",
+                                  "why": "Registers are the CPU's fastest storage, not disk.", "user_excerpt": "registers are stored on the hard drive",
+                                  "confidence": "high"}],
+                    "question": {"concept_id": concepts["CPU registers"], "text": "Where do registers live?"}, "reason": "",
+                    "coverage": [
+                        {"title": "Operating systems", "between": [concepts["Logic gates"], concepts["Web servers"]],
+                         "why": "The OS turns hardware into processes a server can run on", "direction": "Learn what a process is"},
+                        {"title": "Web server", "between": [concepts["Web servers"]], "why": "Already saved.", "direction": "None."},
+                        {"title": "Compilers", "between": [str(uuid4())], "why": "Unsupported.", "direction": "None."},
+                        {"title": "Broken option"}]}
+        turn = self.send("What gaps or misconceptions do I have in computing?",
+                         Model(router=intents({"action": "diagnose", "topic": "computing"}), diagnose=diagnose))
+        self.assertEqual(turn["status"], "completed", turn)
+        self.assertIn("Possible misconception in “CPU registers”", turn["reply"])
+        self.assertIn("Directions in Computing where nothing is saved yet:", turn["reply"])
+        self.assertIn("- Operating systems (connects to “Logic gates” and “Web servers”)", turn["reply"])
+        self.assertNotIn("Compilers", turn["reply"])
+        with Session(self.engine) as db:
+            effects = db.get(ConversationTurn, UUID(turn["id"])).effects
+        effect = next(e for e in effects.values() if e["kind"] == "diagnose")
+        self.assertEqual([option["title"] for option in effect["coverage"]], ["Operating systems"])
+        self.assertEqual(len(self.rows(Concept)), 3)
+        self.assertEqual([need.kind for need in self.rows(LearningNeed)], ["misconception"])
+        self.assertTrue(turn["reply"].rstrip().endswith("Question to check: Where do registers live?"))
+
     def test_period_uses_user_timezone_and_absence_is_not_ignorance(self):
         now = datetime(2026, 10, 21, 1, 0, tzinfo=timezone.utc)
         since, until, phrase = period_bounds("last_week", None, "America/Los_Angeles", now)

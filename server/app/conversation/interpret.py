@@ -85,8 +85,8 @@ Actions:
   ("my cake analogy" -> "cake"); use "" for "my analogy" without a keyword.
 - teach: explain, teach, show, or give an example/diagram/analogy of something.
   style: explain | example | diagram | analogy.
-- diagnose: the user ASKS you to find gaps, misconceptions, misunderstandings, or
-  what to learn next. whole_bank=true for "anything/any topic/everything I've
+- diagnose: the user ASKS you to find gaps, misconceptions, misunderstandings,
+  what they are missing, or what to learn next to expand a subject. whole_bank=true for "anything/any topic/everything I've
   learned". Uncertainty inside a statement ("I'm not sure how...") is bank, not
   diagnose.
 - practice: quiz, test, cue cards, flashcards, practice questions.
@@ -130,7 +130,7 @@ def shortcut(message: str, active: dict | None) -> RouterOutput | None:
 
 DIAGNOSTIC_REQUEST = re.compile(
     r"\b(gaps?|misconceptions?|misunderst\w*|mistakes?|wrong|weak\w*|blind spots?|missing|what (should|to) i learn"
-    r"|learn next|don'?t (i )?(understand|know)|errors?)\b", re.I)
+    r"|learn next|don'?t (i )?(understand|know)|errors?|expand|direction)\b", re.I)
 
 
 RECALL_REQUEST = re.compile(

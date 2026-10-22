@@ -122,7 +122,8 @@ class TurnRun:
         for turn, text in reversed(rows):
             recent.append({"role": "user", "content": text[:400]})
             if turn.reply:
-                recent.append({"role": "assistant", "content": turn.reply[:400]})
+                # Long enough to keep a diagnosis's suggested topics, which follow its findings.
+                recent.append({"role": "assistant", "content": turn.reply[:1000]})
         active = None
         if self.active:
             active = {key: self.active.get(key) for key in ("type", "format", "question", "options")}

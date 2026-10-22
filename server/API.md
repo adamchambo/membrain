@@ -40,7 +40,12 @@ suggestion revision. Recall quotes saved text verbatim and assesses it separatel
 the saved explanation is never changed. Diagnosis records suspected gaps and
 misconceptions as learning needs with evidence strength (`model_suspected`,
 `user_uncertain`, `observed_in_answer`) and an event history; bank-wide diagnosis
-ranks every saved concept deterministically before the model picks one. Practice
+ranks every saved concept deterministically before the model picks one. A diagnosis
+with a subject in scope also lists up to three coverage options: topics with no saved
+concept that the saved ones in that subject point to (for example a missing middle
+layer). Each must connect supplied concepts and must not name or closely match a saved
+concept; options are recorded in the turn's effect and never become concepts or
+learning needs. Practice
 feedback keeps recall (versus the saved explanation) apart from factual correctness;
 for multiple choice the stored key decides correctness.
 

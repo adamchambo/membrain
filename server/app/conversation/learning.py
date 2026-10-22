@@ -18,16 +18,20 @@ from app.conversation.models import ConversationTurn
 from app.conversation.needs import HEDGE, rank, record
 from app.conversation.processor import TurnRun
 from app.conversation.prompts import DIAGNOSE_PROMPT, DIAGNOSTIC_ANSWER_PROMPT, PROMPT_VERSION, RECALL_PROMPT, TEACH_PROMPT
-from app.conversation.scope import Scope, resolve, zone
-from app.discovery.service import latest_revisions
+from app.captures.ingestion import MERGE_MINIMUM
+from app.conversation.scope import Scope, eligible, resolve, subject_members, zone
+from app.discovery.service import latest_revisions, vector_search
 from app.jobs.service import enqueue_embedding
 from app.knowledge.models import CaptureConcept, Concept, ExplanationRevision
 from app.knowledge.service import latest_revision
-from app.learning.models import LearningArtifact, LearningNeed, LearningNeedEvent, LearningSuggestion
-from app.learning.organisation import assign
+from app.learning.models import LearningArtifact, LearningNeed, LearningNeedEvent, LearningSuggestion, Subject, SubjectConcept
+from app.learning.organisation import assign, name_key
 
 ANALOGY = re.compile(r"\b(like a|like an|like the|as if|imagine|think of (it|them|this) as|analogy|similar to|just as|picture)\b", re.I)
 SAVED_CHARACTERS = 1200
+# Subject material for coverage shares the local model's 8k window with the saved views.
+COVERAGE_CONCEPTS = 20
+COVERAGE_CHARACTERS = 140
 
 
 def saved_view(db: Session, concept_id: UUID, timezone_name: str, characters: int = SAVED_CHARACTERS) -> dict | None:
@@ -240,6 +244,69 @@ def adopt(run: TurnRun, index: int, intent: Intent, count: int) -> None:
     run.complete(index, apply)
 
 
+def coverage_subject(db: Session, subject_ids: list[UUID], concept_id: UUID, timezone_name: str) -> dict | None:
+    """Saved concepts of the subject to look for missing topics in, or None.
+
+    Uses the scope's own subject, else a subject of the concept being diagnosed; among
+    several, the one with the most saved concepts gives the widest picture. A subject needs
+    two saved concepts before anything can sit between them.
+    """
+    if not subject_ids:
+        subject_ids = db.scalars(select(SubjectConcept.subject_id).where(SubjectConcept.concept_id == concept_id)).all()
+    best = None
+    for subject_id in subject_ids:
+        members, _ = eligible(db, list(subject_members(db, [subject_id])), None, None, COVERAGE_CONCEPTS, ranked=[])
+        subject = db.get(Subject, subject_id)
+        if subject and len(members) >= 2 and (best is None or len(members) > len(best[1])):
+            best = (subject, members)
+    if best is None:
+        return None
+    views = [saved_view(db, x, timezone_name, COVERAGE_CHARACTERS) for x in best[1]]
+    return {"subject_id": str(best[0].id), "title": best[0].title,
+            "concepts": [{"concept_id": v["concept_id"], "title": v["title"], "excerpt": v["explanation"]} for v in views if v]}
+
+
+def coverage_options(run: TurnRun, options: list, subject: dict | None) -> list[dict]:
+    """Keep options that connect supplied concepts and name something not already saved.
+
+    A title matching a saved concept by name, or whose meaning is as close as a paraphrase
+    to a saved explanation, is already in the bank and is dropped.
+    """
+    if not subject:
+        return []
+    supplied = {c["concept_id"]: c["title"] for c in subject["concepts"]}
+    with Session(run.engine) as db:
+        saved = {name_key(title) for title in db.scalars(select(Concept.title).where(Concept.archived_at.is_(None))).all()}
+    kept = []
+    for option in options:
+        between = [x for x in dict.fromkeys(option.between) if x in supplied]
+        key = name_key(option.title)
+        if not between or not key or key in saved:
+            continue
+        vector = run.vector(option.title)
+        if vector is not None:
+            with Session(run.engine) as db:
+                hit = next(iter(vector_search(db, vector[0], vector[1], 1)), None)
+            if hit is not None and hit.similarity is not None and hit.similarity >= MERGE_MINIMUM:
+                continue
+        saved.add(key)
+        kept.append({"title": option.title, "between": [{"concept_id": x, "title": supplied[x]} for x in between],
+                     "why": option.why, "direction": option.direction})
+    return kept
+
+
+def coverage_lines(subject: dict, options: list[dict]) -> str:
+    def sentence(text: str) -> str:
+        return text if text.endswith((".", "!", "?")) else text + "."
+    lines = [f"Directions in {subject['title']} where nothing is saved yet:"]
+    for option in options:
+        between = " and ".join(f"“{x['title']}”" for x in option["between"])
+        lines.append(f"- {option['title']} (connects to {between}): {sentence(option['why'])} Start with: {sentence(option['direction'])}")
+    lines.append(f"That's only what your bank doesn't record yet. Say “teach me {options[0]['title']}”, "
+                 "or tell me how you understand it and I'll save it.")
+    return "\n".join(lines)
+
+
 def diagnose(run: TurnRun, index: int, intent: Intent, count: int) -> None:
     """Suggest specific suspected misconceptions or gaps, then ask one diagnostic question."""
     run.note("Looking through your saved explanations")
@@ -267,8 +334,11 @@ def diagnose(run: TurnRun, index: int, intent: Intent, count: int) -> None:
         asked = db.scalars(select(LearningNeedEvent.payload).join(LearningNeed, LearningNeed.id == LearningNeedEvent.need_id)
             .where(LearningNeed.concept_id.in_(ids), LearningNeedEvent.kind == "asked")
             .order_by(LearningNeedEvent.created_at.desc()).limit(6)).all()
+        subject = coverage_subject(db, scope.subject_ids, ids[0], run.timezone)
     payload = {"request": run.message, "saved": [for_model(v) for v in views], "evidence": evidence,
                "already_asked": [item["question"] for item in asked if item.get("question")]}
+    if subject:
+        payload["subject"] = {"title": subject["title"], "concepts": subject["concepts"]}
     if whole:
         payload["candidates"] = [{"concept_id": str(c["concept_id"]), "title": c["title"], "reasons": c["reasons"]} for c in candidates]
         payload["instruction"] = "Choose the single most useful candidate to check now and focus findings on it."
@@ -277,6 +347,7 @@ def diagnose(run: TurnRun, index: int, intent: Intent, count: int) -> None:
     findings = [f for f in output.findings if str(f.concept_id) in by_id]
     question_concept = str(output.question.concept_id) if str(output.question.concept_id) in by_id else \
         (str(findings[0].concept_id) if findings else views[0]["concept_id"])
+    coverage = coverage_options(run, output.coverage, subject)
 
     def apply(db):
         item = artifact(db, "diagnosis", {"question": run.message, "scope": scope.as_json(), "turn_id": str(run.turn_id),
@@ -307,6 +378,8 @@ def diagnose(run: TurnRun, index: int, intent: Intent, count: int) -> None:
             lines.append(f"{line} {finding.why}")
         if not findings:
             lines.append("I didn't spot a specific error in what you saved. A question can still show whether something is missing.")
+        if coverage:
+            lines.append(coverage_lines(subject, coverage))
         if asked_need is None:
             asked_need = record(db, concept_id=UUID(question_concept), kind="gap", summary=("Checking with: " + output.question.text)[:600],
                                 evidence="model_suspected", artifact_id=item.id, event="suspected", turn_id=run.turn_id,
@@ -319,7 +392,9 @@ def diagnose(run: TurnRun, index: int, intent: Intent, count: int) -> None:
         lines.append("Question to check: " + output.question.text)
         reply = "\n\n".join(lines)
         item.output = {**item.output, "content": reply}
-        return {"kind": "diagnose", "artifact_id": str(item.id), "concept_ids": [v["concept_id"] for v in views], "reply": reply}
+        return {"kind": "diagnose", "artifact_id": str(item.id), "concept_ids": [v["concept_id"] for v in views], "reply": reply,
+                "coverage_subject": {"id": subject["subject_id"], "title": subject["title"]} if subject else None,
+                "coverage": coverage}
     run.complete(index, apply)
 
 
@@ -359,6 +434,7 @@ HELP = """You can just talk to me. For example:
 - “I'm learning how LLMs work. I understand that …” saves your explanation in your words and files it automatically.
 - “Remind me how fractions work, using my pizza analogy.”
 - “What gaps or misunderstandings do I have about maths?” or “Pick a gap from anything I've learned.”
+  This also points out topics between the ones you've saved that nothing covers yet.
 - “Give me cue cards for what I learned recently about binary.” or “A multiple-choice quiz on LLMs.”
 - “Explain attention with a diagram.” Then “save that” or “I get it now: …”.
 Commands: /new starts a new conversation, /menu opens the classic menus, /undo retracts what your last message saved, /help, /quit."""

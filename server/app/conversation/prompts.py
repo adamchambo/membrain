@@ -42,9 +42,9 @@ DIAGNOSE_PROMPT = SHARED + """
 
 Find likely gaps or misconceptions in the user's saved explanations (data.saved),
 using prior evidence (data.evidence) when given. A misconception quotes something
-the user wrote that seems wrong; a gap is a missing idea needed to understand the
-topic. Absence of a saved note is NOT evidence of a gap: phrase gaps as things to
-check. Keys:
+the user wrote that seems wrong; a gap is a missing idea inside a saved
+explanation. In findings, absence of a saved note is NOT evidence of a gap: phrase
+gaps as things to check. Keys:
 - findings: up to 3 objects {concept_id, kind: gap|misconception, summary,
   why (explain the suspected problem from general knowledge), user_excerpt
   (exact text copied from that concept's saved explanation, or null),
@@ -52,7 +52,15 @@ check. Keys:
 - question: {concept_id, text}: ONE diagnostic question that would reveal whether
   the user understands the most important finding. Do not reveal the answer.
   Never repeat or rephrase a question in data.already_asked.
-- reason: one sentence on why this is worth checking."""
+- reason: one sentence on why this is worth checking.
+- coverage: up to 3 objects {title, between, why, direction}, only when
+  data.subject is given. Each names a topic in that subject with NO saved concept
+  in data.subject.concepts that the saved ones point to: a missing layer, step or
+  foundation (for example, saved low-level and high-level ideas but nothing in
+  between). between: 1-4 concept_id values from data.subject.concepts it connects.
+  why: one sentence on how it relates to them. direction: one sentence on where to
+  start. This is a direction to explore, never a claim about what the user knows.
+  Use [] when nothing clear is missing."""
 
 QUESTION_PROMPT = SHARED + """
 

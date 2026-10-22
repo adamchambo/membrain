@@ -48,10 +48,35 @@ class DiagnosticQuestion(Output):
     text: str = Field(min_length=1, max_length=800)
 
 
+class CoverageOption(Output):
+    """A topic with nothing saved that the saved concepts in a subject point to.
+
+    It names a direction to explore, never a deficit, so it carries no concept_id of its
+    own; between holds the supplied concepts it connects, checked by the server.
+    """
+    title: str = Field(min_length=1, max_length=120)
+    between: list[str] = Field(min_length=1, max_length=4)
+    why: str = Field(min_length=1, max_length=600)
+    direction: str = Field(min_length=1, max_length=600)
+
+
 class DiagnoseOutput(Output):
     findings: list[Finding] = Field(default_factory=list, max_length=3)
     question: DiagnosticQuestion
     reason: str = Field(default="", max_length=600)
+    coverage: list[CoverageOption] = Field(default_factory=list, max_length=3)
+
+    @field_validator("coverage", mode="before")
+    @classmethod
+    def usable_options(cls, values):
+        """A malformed option is dropped; it must not cost the misconception check."""
+        kept = []
+        for value in (values if isinstance(values, list) else [])[:3]:
+            try:
+                kept.append(CoverageOption.model_validate(value))
+            except ValueError:
+                continue
+        return kept
 
 
 class OpenQuestionOutput(Output):
