@@ -55,7 +55,8 @@ there are no menus or prerequisites to choose first:
 - "Remind me how fractions work using my pizza analogy" quotes what you saved, then
   separately says what holds up and where it breaks down. Your saved words never change.
 - "What gaps do I have about maths?" or "Pick a gap from anything I've learned"
-  names suspected gaps or misconceptions (labelled as suspicions) and asks one question.
+  names suspected misconceptions (labelled as suspicions) and, for a subject, topics
+  with nothing saved that sit between ones you do have. It asks one check question.
 - "Give me cue cards for what I learned recently" ("recently" = 7 days) or
   "A multiple-choice quiz on binary from last week" (calendar week, your timezone).
   Answer with a letter or your own words; `stop` ends the set.
@@ -70,8 +71,10 @@ saved) and `/retry` reprocesses only the unfinished part. Your timezone comes fr
 `TZ` or `/etc/localtime`.
 
 Chat commands: `/new` starts a conversation, `/history` shows recent turns, `/undo`
-retracts what your last message saved, `/menu` opens the classic menus (`/chat` or
-"Back to the conversation" returns), `/help`, `/quit`.
+retracts what your last message saved, `/map` opens a 3D view of saved explanations
+(the conversation's subject, or the whole bank when it has at most 100 concepts),
+`/menu` opens the classic menus (`/chat` or "Back to the conversation" returns),
+`/help`, `/quit`.
 
 ## Navigation and learning
 

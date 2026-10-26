@@ -42,6 +42,10 @@ export interface ConversationRead {
     /**
      * 
      */
+    subjectId?: string | null;
+    /**
+     * 
+     */
     title: string | null;
 }
 
@@ -69,6 +73,7 @@ export function ConversationReadFromJSONTyped(json: any, ignoreDiscriminator: bo
         'captures': ((json['captures'] as Array<any>).map(CaptureReadFromJSON)),
         'id': json['id'],
         'nextCursor': json['next_cursor'],
+        'subjectId': json['subject_id'] === undefined ? undefined : json['subject_id'] === null ? null : json['subject_id'],
         'title': json['title'],
     };
 }
@@ -87,6 +92,7 @@ export function ConversationReadToJSONTyped(value?: ConversationRead | null, ign
         'captures': ((value['captures'] as Array<any>).map(CaptureReadToJSON)),
         'id': value['id'],
         'next_cursor': value['nextCursor'],
+        'subject_id': value['subjectId'],
         'title': value['title'],
     };
 }

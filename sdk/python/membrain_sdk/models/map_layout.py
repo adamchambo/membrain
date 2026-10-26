@@ -36,8 +36,8 @@ class MapLayout(BaseModel):
     @field_validator('method')
     def method_validate_enum(cls, value):
         """Validates the enum"""
-        if value not in set(['none', 'circle']):
-            raise ValueError("must be one of enum values ('none', 'circle')")
+        if value not in set(['none', 'circle', 'embedding']):
+            raise ValueError("must be one of enum values ('none', 'circle', 'embedding')")
         return value
 
     model_config = ConfigDict(

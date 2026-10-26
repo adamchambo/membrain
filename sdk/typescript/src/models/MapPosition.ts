@@ -27,6 +27,10 @@ export interface MapPosition {
      * 
      */
     y: number;
+    /**
+     * 
+     */
+    z?: number | null;
 }
 
 /**
@@ -50,6 +54,7 @@ export function MapPositionFromJSONTyped(json: any, ignoreDiscriminator: boolean
         
         'x': json['x'],
         'y': json['y'],
+        'z': json['z'] === undefined ? undefined : json['z'] === null ? null : json['z'],
     };
 }
 
@@ -66,6 +71,7 @@ export function MapPositionToJSONTyped(value?: MapPosition | null, ignoreDiscrim
         
         'x': value['x'],
         'y': value['y'],
+        'z': value['z'],
     };
 }
 

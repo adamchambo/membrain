@@ -167,11 +167,14 @@ understanding prevents adoption. Repeating an identical decision is idempotent.
 
 `POST /concept-map` takes exactly one of `concept_ids` (max 100) or `subject_id`,
 optional `include_similarity`, `minimum_similarity` (-1 to 1), and `layout`
-(`none` or `circle`). It returns text-accessible nodes, confirmed edges and separately
-labelled semantic candidates from compatible current-revision vectors. Pending
-vectors are explicit. Circle coordinates are display placement, not an embedding
-projection. 3D, prerequisites inferred from distance, and a graphical client remain
-outside this first API version.
+(`none`, `circle`, or `embedding`). It returns text-accessible nodes with a truncated
+saved excerpt, confirmed edges and separately labelled semantic candidates from
+compatible current-revision vectors. Pending vectors are explicit. Circle coordinates
+are display placement. `embedding` is a PCA of latest explanation vectors, with an
+optional `z`; nearby points have similar saved wording. Distance is not a
+prerequisite. Concepts with no vector are returned without a position.
+`GET /conversations/{id}` includes `subject_id` so a client can map the current
+subject. The CLI `/map` command writes a local HTML page from this layout.
 
 ## Voice and hosted work
 

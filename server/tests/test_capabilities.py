@@ -177,6 +177,37 @@ class CapabilityTests(unittest.TestCase):
         self.assertEqual(result["nodes"][0]["label"], "Binary")
         self.assertEqual(result["confirmed_edges"], [])
         self.assertEqual(result["layout"]["method"], "circle")
+        self.assertNotIn("z", result["nodes"][0].get("position") or {})
+
+    def place(self, concept, vector):
+        from sqlalchemy.dialects.postgresql import insert
+        from app.setup.profiles import initialize_active
+        with Session(self.engine) as db, db.begin():
+            profile = initialize_active(db)
+            revision = db.scalar(select(ExplanationRevision).where(ExplanationRevision.concept_id == concept.id)
+                                 .order_by(ExplanationRevision.revision_number.desc()).limit(1))
+            db.execute(insert(ConceptEmbedding).values(explanation_revision_id=revision.id, model_key=profile.key,
+                                                       embedding=vector).on_conflict_do_nothing())
+
+    def test_embedding_layout_separates_orthogonal_vectors_and_leaves_missing_ones_unplaced(self):
+        first = self.concept("Stacks are last in, first out.")
+        second = self.concept("Queues are first in, first out.")
+        third = self.concept("A heap is a tree ordered by priority.")
+        self.place(first, [1.0, 0.0, 0.0])
+        self.place(second, [0.0, 1.0, 0.0])
+        ids = [str(first.id), str(second.id), str(third.id)]
+        result = self.api("POST", "/concept-map", {"concept_ids": ids, "layout": "embedding", "include_similarity": False})
+        self.assertEqual(result["layout"]["method"], "embedding")
+        self.assertEqual(result["vector_status"], "vectors_pending")
+        by_id = {node["id"]: node for node in result["nodes"]}
+        self.assertIn("z", by_id[str(first.id)]["position"])
+        self.assertIsNone(by_id[str(third.id)].get("position"))
+        a, b = by_id[str(first.id)]["position"], by_id[str(second.id)]["position"]
+        self.assertGreater(sum((a[axis] - b[axis]) ** 2 for axis in ("x", "y", "z")), 0.1)
+        self.assertIn("last in", by_id[str(first.id)]["excerpt"])
+        repeat = self.api("POST", "/concept-map", {"concept_ids": ids, "layout": "embedding", "include_similarity": False})
+        self.assertEqual({node["id"]: node.get("position") for node in result["nodes"]},
+                         {node["id"]: node.get("position") for node in repeat["nodes"]})
 
     def test_deletion_rejects_active_and_referenced_records(self):
         concept = self.concept()

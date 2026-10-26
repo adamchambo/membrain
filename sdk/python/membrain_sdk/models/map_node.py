@@ -29,11 +29,12 @@ class MapNode(BaseModel):
     """
     MapNode
     """ # noqa: E501
+    excerpt: Optional[StrictStr] = None
     id: UUID
     label: StrictStr
     position: Optional[MapPosition] = None
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["id", "label", "position"]
+    __properties: ClassVar[List[str]] = ["excerpt", "id", "label", "position"]
 
     model_config = ConfigDict(
         validate_by_name=True,
@@ -84,6 +85,11 @@ class MapNode(BaseModel):
             for _key, _value in self.additional_properties.items():
                 _dict[_key] = _value
 
+        # set to None if excerpt (nullable) is None
+        # and model_fields_set contains the field
+        if self.excerpt is None and "excerpt" in self.model_fields_set:
+            _dict['excerpt'] = None
+
         # set to None if position (nullable) is None
         # and model_fields_set contains the field
         if self.position is None and "position" in self.model_fields_set:
@@ -101,6 +107,7 @@ class MapNode(BaseModel):
             return cls.model_validate(obj)
 
         _values = {
+            "excerpt": obj.get("excerpt"),
             "id": obj.get("id"),
             "label": obj.get("label"),
             "position": MapPosition.from_dict(obj["position"]) if obj.get("position") is not None else None

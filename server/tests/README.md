@@ -23,17 +23,19 @@ evaluation with the configured models and representative user explanations.
 Capability tests additionally cover private setup configuration and environment
 precedence, archive/restore, versioned HTML extraction, subject quizzes and history,
 source-citation rejection, explicit suggestion adoption, embedding-profile cutover,
-portable preview/import/retry with circular provenance references, map metadata,
-and permanent-deletion guards. Test configuration uses a temporary private file.
+portable preview/import/retry with circular provenance references, map metadata
+including embedding PCA layout, and permanent-deletion guards. Test configuration
+uses a temporary private file.
 
 Conversation tests (`test_conversation.py`) drive `POST /turns` and the worker with a
 scripted model that answers per prompt. They cover verbatim saving and idempotency,
-automatic subjects and topic carry-forward, mixed bank-and-practice turns, private
-multiple-choice keys graded by the stored key, recall that quotes saved words and
-says when an analogy is missing, bank-wide gap ranking with need history, timezone
-and period scope, relevance ordering, per-conversation ordering, checkpointed retries
-that never repeat completed intents, adoption provenance, v2 export and v1 import,
-and router corrections observed with the local model.
+automatic subjects and topic carry-forward, paraphrase attachment at MERGE_MINIMUM,
+mixed bank-and-practice turns, private multiple-choice keys graded by the stored key,
+recall that quotes saved words and says when an analogy is missing, bank-wide gap
+ranking with need history, subject coverage options that do not create concepts,
+timezone and period scope, relevance ordering, per-conversation ordering, checkpointed
+retries that never repeat completed intents, adoption provenance, v2 export and v1
+import, and router corrections observed with the local model.
 
 CLI SDK journeys also cover capture/search/review, real loopback HTTP transport,
 possible-gap diagnostics and separate lessons, resource browsing, subject scope,

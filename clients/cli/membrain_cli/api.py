@@ -49,7 +49,8 @@ class SDKBackend(ConversationCommands, CaptureCommands, BankCommands, ReviewComm
                           ('discovery', sdk.DiscoveryApi), ('review', sdk.ReviewApi),
                           ('subjects', sdk.SubjectsAndReflectionApi), ('learning', sdk.LearningApi),
                           ('management', sdk.BankManagementApi), ('setup', sdk.SetupApi),
-                          ('work', sdk.JobsApi), ('sources', sdk.SourceContentApi), ('conversation', sdk.ConversationApi)]:
+                          ('work', sdk.JobsApi), ('sources', sdk.SourceContentApi), ('conversation', sdk.ConversationApi),
+                          ('maps', sdk.ConceptMapApi)]:
             setattr(self, name, cls(self.client))
 
     def execute(self, function, *args, **kwargs):

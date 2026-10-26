@@ -12,12 +12,14 @@ public struct ConversationRead: Sendable, Codable {
     public var captures: [CaptureRead]
     public var id: UUID
     public var nextCursor: String?
+    public var subjectId: UUID?
     public var title: String?
 
-    public init(captures: [CaptureRead], id: UUID, nextCursor: String?, title: String?) {
+    public init(captures: [CaptureRead], id: UUID, nextCursor: String?, subjectId: UUID? = nil, title: String?) {
         self.captures = captures
         self.id = id
         self.nextCursor = nextCursor
+        self.subjectId = subjectId
         self.title = title
     }
 
@@ -25,6 +27,7 @@ public struct ConversationRead: Sendable, Codable {
         case captures
         case id
         case nextCursor = "next_cursor"
+        case subjectId = "subject_id"
         case title
     }
 
@@ -35,6 +38,7 @@ public struct ConversationRead: Sendable, Codable {
         try container.encode(captures, forKey: .captures)
         try container.encode(id, forKey: .id)
         try container.encode(nextCursor, forKey: .nextCursor)
+        try container.encodeIfPresent(subjectId, forKey: .subjectId)
         try container.encode(title, forKey: .title)
     }
 }

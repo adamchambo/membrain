@@ -23,7 +23,7 @@ from app.learning.organisation import assign, ensure_subject
 from app.jobs.models import WorkItem
 from app.jobs.worker import run_one
 from app.knowledge.models import Concept, ExplanationRevision
-from app.learning.models import LearningNeed, LearningNeedEvent, LearningSuggestion, Subject, SubjectConcept
+from app.learning.models import LearningArtifact, LearningNeed, LearningNeedEvent, LearningSuggestion, Subject, SubjectConcept
 from app.portability.service import V2_COLUMNS, V2_TABLES, export_bank, import_bank
 from app.review.models import ReviewAttempt, ReviewQuestion, ReviewSession
 
@@ -227,6 +227,8 @@ class ConversationTests(unittest.TestCase):
             effects = db.get(ConversationTurn, UUID(turn["id"])).effects
         effect = next(e for e in effects.values() if e["kind"] == "diagnose")
         self.assertEqual([option["title"] for option in effect["coverage"]], ["Operating systems"])
+        artifact = self.rows(LearningArtifact)[-1]
+        self.assertEqual(artifact.inputs["coverage"][0]["title"], "Operating systems")
         self.assertEqual(len(self.rows(Concept)), 3)
         self.assertEqual([need.kind for need in self.rows(LearningNeed)], ["misconception"])
         self.assertTrue(turn["reply"].rstrip().endswith("Question to check: Where do registers live?"))

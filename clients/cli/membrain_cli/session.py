@@ -4,6 +4,7 @@ from dataclasses import dataclass, field, replace
 import time
 from uuid import UUID, uuid4
 from .jobs import Monitor
+from .map_page import write_map
 from .menus import MENUS
 from . import terminal
 from .output import show
@@ -108,7 +109,7 @@ class Session:
         self.write('LOCAL STUB MODE — no server or persistent changes.' if self.backend.is_stub else f'Membrain — local API: {self.api_url}')
         if self.current.screen == 'chat':
             self.write('Talk to Membrain in your own words: explain what you learned, ask for a reminder, a quiz or your gaps.')
-            self.write('Commands: /new, /menu, /history, /undo, /retry, /help, /quit.')
+            self.write('Commands: /new, /menu, /map, /history, /undo, /retry, /help, /quit.')
             self.resume_chat()
         else:
             self.write('Commands: /help, /back, /menu, /chat, /quit, /jobs, /setup. Capture: /show, /undo, /history. /retry resends retained input.')
@@ -176,6 +177,9 @@ class Session:
             self.last_context = replace(self.last_context, conversation_id=None, capture_id=None)
             self.stack = [Frame('chat', Context())]
             self.write('Started a new conversation.')
+            return
+        if command == '/map':
+            self.open_map()
             return
         if self.current.screen == 'chat' and command in ('/retry', '/history'):
             self.retry_turn() if command == '/retry' else self.show_turns(10)
@@ -245,6 +249,7 @@ class Session:
             '/setup — configure chat, embeddings and database settings',
             '/back — return to the previous screen',
             '/menu — return to the main menu',
+            '/map — open a 3D map of saved explanations (conversation subject, or the whole bank under 100 concepts)',
             '/quit — exit the client; saved jobs remain on the server (x at the main menu)',
             '/jobs — inspect processing status',
             '/show — inspect the latest capture',
@@ -261,6 +266,19 @@ class Session:
         self.stack = [Frame('chat', replace(Context(), conversation_id=self.last_context.conversation_id,
                                             capture_id=self.last_context.capture_id))]
         self.write('Back in the conversation.' if self.last_context.conversation_id else 'Talk to Membrain in your own words.')
+
+    def open_map(self):
+        """Fetch embedding layout for the current subject or bank and open it locally."""
+        context = self.current.context
+        if not context.subject_id and not context.conversation_id:
+            context = replace(context, conversation_id=self.last_context.conversation_id)
+        try:
+            result = self.backend.call('bank.map', '', context)
+            path = write_map(result.payload)
+        except ClientError as error:
+            self.write(str(error))
+            return
+        self.write(result.message + f' Opened {path}.')
 
     def resume_chat(self):
         """Show the end of the remembered conversation so a pending question has its context."""
@@ -521,6 +539,8 @@ class Session:
             self.current.context = replace(self.current.context, search_mode=operation.split('.')[1])
         elif operation == 'bank.history' and not self.current.context.concept_id:
             self.choose('bank.reflection_changes' if self.current.screen == 'reflection' else 'bank.concepts', 'revision_history')
+        elif operation == 'bank.map':
+            self.open_map()
         elif operation == 'bank.search':
             self.ask('bank.search', 'Search your bank:')
         elif operation in ('bank.concepts', 'bank.archived', 'bank.subjects', 'bank.resources', 'bank.recents', 'bank.timeline', 'bank.related', 'bank.subject_members'):

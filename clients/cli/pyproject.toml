@@ -15,3 +15,6 @@ oracle = "membrain_cli.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["membrain_cli*"]
+
+[tool.setuptools.package-data]
+membrain_cli = ["static/*"]

@@ -93,7 +93,8 @@ def conversation_history(db: Session, conversation_id: UUID, cursor: str | None,
         query = query.where(before_cursor(Capture.created_at, Capture.id, cursor))
     rows = db.scalars(query.order_by(Capture.created_at.desc(), Capture.id.desc()).limit(limit + 1)).all()
     next_cursor = encode_cursor(rows[limit - 1].created_at, rows[limit - 1].id) if len(rows) > limit else None
-    return ConversationRead(id=conversation.id, title=conversation.title, captures=rows[:limit], next_cursor=next_cursor)
+    return ConversationRead(id=conversation.id, title=conversation.title, subject_id=conversation.subject_id,
+                            captures=rows[:limit], next_cursor=next_cursor)
 
 
 # The local chat model has an 8k-token window shared by instructions, schema and output.

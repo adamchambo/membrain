@@ -1,8 +1,10 @@
 """Conversational screen: send, progress, background handoff and safe retries."""
 import os
+import tempfile
 import unittest
 from dataclasses import replace
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -100,11 +102,39 @@ class ChatTests(unittest.TestCase):
         self.assertEqual([(job.id, job.kind, job.target) for job in monitor.watched], [(JOB, 'turn', TURN)])
         self.assertIn(JOB, session.known_jobs)
 
+    def test_map_writes_a_local_page_from_map_data(self):
+        from pathlib import Path
+        with patch('membrain_cli.session.write_map', return_value=Path('/tmp/membrain-map.html')):
+            session, _, output = self.run_chat('hello', '/map', '/quit')
+        self.assertEqual([call[0] for call in session.backend.calls if call[0] == 'bank.map'], ['bank.map'])
+        self.assertIn('Opened /tmp/membrain-map.html', output)
+
     def test_new_and_menu_switch_without_losing_the_conversation(self):
         session, _, output = self.run_chat('hello', '/menu', '/chat', '/new', '/quit')
         self.assertIn('Back in the conversation', output)
         self.assertIsNone(session.current.context.conversation_id)
         self.assertEqual(session.current.screen, 'chat')
+
+
+class MapPageTests(unittest.TestCase):
+    def test_write_map_inlines_json_and_copies_three(self):
+        from membrain_cli.map_page import write_map
+        with tempfile.TemporaryDirectory() as raw:
+            package = Path(raw) / 'pkg'
+            package.mkdir()
+            (package / 'three.min.js').write_text('/* three */', encoding='utf-8')
+            dest = Path(raw) / 'out'
+            opened = []
+            class Traversable:
+                def joinpath(self, name):
+                    return package / Path(name).name
+            with patch('membrain_cli.map_page.files', return_value=Traversable()):
+                path = write_map({'nodes': [{'id': '1', 'label': 'Binary', 'excerpt': 'Two symbols.'}]},
+                                 directory=dest, opener=opened.append)
+            page = path.read_text(encoding='utf-8')
+            self.assertIn('"label": "Binary"', page)
+            self.assertEqual((dest / 'three.min.js').read_text(encoding='utf-8'), '/* three */')
+            self.assertTrue(opened[0].startswith('file:'))
 
 
 class AdapterTests(unittest.TestCase):
@@ -145,3 +175,23 @@ class AdapterTests(unittest.TestCase):
             self.assertEqual(local_timezone(), 'Pacific/Auckland')
         with patch.dict(os.environ, {'TZ': ''}), patch('os.path.realpath', return_value='/nowhere'):
             self.assertEqual(local_timezone(), 'UTC')
+
+    def test_map_uses_the_conversation_subject(self):
+        sent, subject = [], uuid4()
+        class Captures:
+            def conversation_history(inner, conversation_id, **kwargs):
+                return sdk.ConversationRead(id=CONVERSATION, title='Computing', subject_id=subject,
+                                            captures=[], next_cursor=None)
+        class Maps:
+            def concept_map(inner, body, **kwargs):
+                sent.append(body)
+                return sdk.ConceptMapRead(
+                    nodes=[sdk.MapNode(id=TURN, label='Binary', excerpt='Two symbols.',
+                                       position=sdk.MapPosition(x=0.1, y=0.2, z=0.3))],
+                    confirmed_edges=[], proposed_edges=[], similarity_candidates=[],
+                    proposals_truncated=False, vector_status='ready',
+                    layout=sdk.MapLayout(method='embedding', version=1, meaning='PCA'))
+        self.backend.captures, self.backend.maps = Captures(), Maps()
+        result = self.backend.call('bank.map', '', Context(conversation_id=CONVERSATION))
+        self.assertEqual((sent[0].subject_id, sent[0].layout), (subject, 'embedding'))
+        self.assertEqual(result.payload['nodes'][0]['label'], 'Binary')

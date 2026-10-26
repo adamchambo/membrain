@@ -33,6 +33,14 @@ class StubAPI:
         if operation == 'capture.message':
             return Result('[Stub] Message received in memory only.', replace(context, conversation_id=context.conversation_id or CONVERSATION,
                           capture_id=DEMO, request_id=None))
+        if operation == 'bank.map':
+            payload = {'nodes': [{'id': str(DEMO), 'label': 'Binary', 'excerpt': 'Binary uses two symbols.',
+                                  'position': {'x': 0.2, 'y': 0.1, 'z': 0.0}}],
+                       'confirmed_edges': [], 'similarity_candidates': [], 'proposed_edges': [],
+                       'proposals_truncated': False, 'vector_status': 'ready',
+                       'layout': {'method': 'embedding', 'version': 1,
+                                  'meaning': 'PCA of latest explanation vectors; nearby points have similar saved wording.'}}
+            return Result('[Stub] Map data only; no browser window.', context, payload=payload)
         if operation in ('bank.concepts', 'scope.concepts', 'bank.search', 'bank.recents', 'bank.timeline', 'bank.related'):
             return Result('[Stub] Navigation example; no personal evidence inspected.', context, (Item(DEMO, 'concept', 'Binary'),))
         if operation in ('bank.subjects', 'scope.subjects'):

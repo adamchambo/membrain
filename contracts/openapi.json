@@ -1238,6 +1238,18 @@
             ],
             "title": "Next Cursor"
           },
+          "subject_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
           "title": {
             "anyOf": [
               {
@@ -1561,7 +1573,8 @@
           "method": {
             "enum": [
               "none",
-              "circle"
+              "circle",
+              "embedding"
             ],
             "title": "Method",
             "type": "string"
@@ -1581,6 +1594,17 @@
       },
       "MapNode": {
         "properties": {
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -1617,6 +1641,17 @@
           "y": {
             "title": "Y",
             "type": "number"
+          },
+          "z": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Z"
           }
         },
         "required": [
@@ -1646,7 +1681,8 @@
             "default": "none",
             "enum": [
               "none",
-              "circle"
+              "circle",
+              "embedding"
             ],
             "title": "Layout",
             "type": "string"

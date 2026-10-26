@@ -110,5 +110,6 @@ class CaptureReceipt(BaseModel):
 class ConversationRead(BaseModel):
     id: UUID
     title: str | None
+    subject_id: UUID | None = None
     captures: list[CaptureRead]
     next_cursor: str | None

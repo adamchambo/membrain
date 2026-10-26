@@ -352,7 +352,8 @@ def diagnose(run: TurnRun, index: int, intent: Intent, count: int) -> None:
     def apply(db):
         item = artifact(db, "diagnosis", {"question": run.message, "scope": scope.as_json(), "turn_id": str(run.turn_id),
                         "revision_ids": [v["revision_id"] for v in views],
-                        "candidates": [{**c, "concept_id": str(c["concept_id"]), "revision_id": str(c["revision_id"])} for c in candidates]},
+                        "candidates": [{**c, "concept_id": str(c["concept_id"]), "revision_id": str(c["revision_id"])} for c in candidates],
+                        "coverage": coverage},
                         "", run.client.model_key, [output.question.text])
         asked_need = None
         lines = []
@@ -433,7 +434,7 @@ def diagnostic_answer(run: TurnRun, index: int, intent: Intent, count: int) -> N
 HELP = """You can just talk to me. For example:
 - “I'm learning how LLMs work. I understand that …” saves your explanation in your words and files it automatically.
 - “Remind me how fractions work, using my pizza analogy.”
-- “What gaps or misunderstandings do I have about maths?” or “Pick a gap from anything I've learned.”
+- “What gaps or misunderstandings do I have about maths?” names suspected misconceptions and missing topics in that subject. “Pick a gap from anything I've learned” ranks the whole bank first.
   This also points out topics between the ones you've saved that nothing covers yet.
 - “Give me cue cards for what I learned recently about binary.” or “A multiple-choice quiz on LLMs.”
 - “Explain attention with a diagram.” Then “save that” or “I get it now: …”.

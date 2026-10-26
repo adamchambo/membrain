@@ -18,7 +18,7 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, ConfigDict, StrictFloat, StrictInt
-from typing import Any, ClassVar, Dict, List, Union
+from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing import Optional, Set
 from typing_extensions import Self
 from pydantic_core import to_jsonable_python
@@ -29,8 +29,9 @@ class MapPosition(BaseModel):
     """ # noqa: E501
     x: Union[StrictFloat, StrictInt]
     y: Union[StrictFloat, StrictInt]
+    z: Optional[Union[StrictFloat, StrictInt]] = None
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["x", "y"]
+    __properties: ClassVar[List[str]] = ["x", "y", "z"]
 
     model_config = ConfigDict(
         validate_by_name=True,
@@ -78,6 +79,11 @@ class MapPosition(BaseModel):
             for _key, _value in self.additional_properties.items():
                 _dict[_key] = _value
 
+        # set to None if z (nullable) is None
+        # and model_fields_set contains the field
+        if self.z is None and "z" in self.model_fields_set:
+            _dict['z'] = None
+
         return _dict
 
     @classmethod
@@ -91,7 +97,8 @@ class MapPosition(BaseModel):
 
         _values = {
             "x": obj.get("x"),
-            "y": obj.get("y")
+            "y": obj.get("y"),
+            "z": obj.get("z")
         }
         # Preserve absent versus explicit null in PATCH and other optional fields.
         _obj = cls.model_validate({key: value for key, value in _values.items() if key in obj})

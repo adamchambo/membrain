@@ -32,9 +32,10 @@ class ConversationRead(BaseModel):
     captures: List[CaptureRead]
     id: UUID
     next_cursor: Optional[StrictStr]
+    subject_id: Optional[UUID] = None
     title: Optional[StrictStr]
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["captures", "id", "next_cursor", "title"]
+    __properties: ClassVar[List[str]] = ["captures", "id", "next_cursor", "subject_id", "title"]
 
     model_config = ConfigDict(
         validate_by_name=True,
@@ -93,6 +94,11 @@ class ConversationRead(BaseModel):
         if self.next_cursor is None and "next_cursor" in self.model_fields_set:
             _dict['next_cursor'] = None
 
+        # set to None if subject_id (nullable) is None
+        # and model_fields_set contains the field
+        if self.subject_id is None and "subject_id" in self.model_fields_set:
+            _dict['subject_id'] = None
+
         # set to None if title (nullable) is None
         # and model_fields_set contains the field
         if self.title is None and "title" in self.model_fields_set:
@@ -113,6 +119,7 @@ class ConversationRead(BaseModel):
             "captures": [CaptureRead.from_dict(_item) for _item in obj["captures"]] if obj.get("captures") is not None else None,
             "id": obj.get("id"),
             "next_cursor": obj.get("next_cursor"),
+            "subject_id": obj.get("subject_id"),
             "title": obj.get("title")
         }
         # Preserve absent versus explicit null in PATCH and other optional fields.

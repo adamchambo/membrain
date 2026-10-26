@@ -11,15 +11,18 @@ public struct MapPosition: Sendable, Codable {
 
     public var x: Double
     public var y: Double
+    public var z: Double?
 
-    public init(x: Double, y: Double) {
+    public init(x: Double, y: Double, z: Double? = nil) {
         self.x = x
         self.y = y
+        self.z = z
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
         case x
         case y
+        case z
     }
 
     // Encodable protocol methods
@@ -28,6 +31,7 @@ public struct MapPosition: Sendable, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(x, forKey: .x)
         try container.encode(y, forKey: .y)
+        try container.encodeIfPresent(z, forKey: .z)
     }
 }
 

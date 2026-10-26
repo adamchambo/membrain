@@ -12,6 +12,7 @@ public struct MapLayout: Sendable, Codable {
     public enum Method: String, Sendable, Codable, CaseIterable {
         case _none = "none"
         case circle = "circle"
+        case embedding = "embedding"
     }
     public var meaning: String
     public var method: Method

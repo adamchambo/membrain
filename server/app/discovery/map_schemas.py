@@ -7,12 +7,14 @@ from pydantic import BaseModel
 class MapPosition(BaseModel):
     x: float
     y: float
+    z: float | None = None
 
 
 class MapNode(BaseModel):
     id: UUID
     label: str
     position: MapPosition | None = None
+    excerpt: str | None = None
 
 
 class ConfirmedMapEdge(BaseModel):
@@ -41,7 +43,7 @@ class ProposedMapEdge(BaseModel):
 
 
 class MapLayout(BaseModel):
-    method: Literal["none", "circle"]
+    method: Literal["none", "circle", "embedding"]
     version: int
     meaning: str
 

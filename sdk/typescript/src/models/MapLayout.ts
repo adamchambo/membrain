@@ -40,6 +40,7 @@ export interface MapLayout {
 export const MapLayoutMethodEnum = {
     None: 'none',
     Circle: 'circle',
+    Embedding: 'embedding',
 } as const;
 export type MapLayoutMethodEnum = typeof MapLayoutMethodEnum[keyof typeof MapLayoutMethodEnum];
 

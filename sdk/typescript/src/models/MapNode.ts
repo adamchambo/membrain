@@ -30,6 +30,10 @@ export interface MapNode {
     /**
      * 
      */
+    excerpt?: string | null;
+    /**
+     * 
+     */
     id: string;
     /**
      * 
@@ -60,6 +64,7 @@ export function MapNodeFromJSONTyped(json: any, ignoreDiscriminator: boolean): M
     }
     return {
         
+        'excerpt': json['excerpt'] === undefined ? undefined : json['excerpt'] === null ? null : json['excerpt'],
         'id': json['id'],
         'label': json['label'],
         'position': json['position'] === undefined ? undefined : json['position'] === null ? null : MapPositionFromJSON(json['position']),
@@ -77,6 +82,7 @@ export function MapNodeToJSONTyped(value?: MapNode | null, ignoreDiscriminator: 
 
     return {
         
+        'excerpt': value['excerpt'],
         'id': value['id'],
         'label': value['label'],
         'position': MapPositionToJSON(value['position']),

@@ -108,4 +108,25 @@ class BankCommands:
             else:
                 self.execute(self.management.patch_concept, required(context.concept_id, 'a concept'), sdk.ConceptPatch(archived=operation == 'bank.archive'))
             return Result('Archived the item; history remains.' if operation == 'bank.archive' else 'Restored the item.', context)
+        if operation == 'bank.map':
+            if context.subject_id:
+                request = sdk.MapRequest(subject_id=context.subject_id, layout='embedding', include_similarity=True)
+            elif context.conversation_id:
+                conversation = self.execute(self.captures.conversation_history, context.conversation_id, limit=1)
+                if conversation.subject_id:
+                    request = sdk.MapRequest(subject_id=conversation.subject_id, layout='embedding', include_similarity=True)
+                else:
+                    request = None
+            else:
+                request = None
+            if request is None:
+                page = self.concepts()
+                if page.next_cursor:
+                    raise ClientError('The bank has more than 100 saved explanations; choose a subject first.')
+                if not page.items:
+                    raise ClientError('Nothing saved to map yet.')
+                request = sdk.MapRequest(concept_ids=[row.id for row in page.items], layout='embedding',
+                                         include_similarity=True)
+            result = self.execute(self.maps.concept_map, request)
+            return Result('Opened a 3D map of your saved explanations.', context, payload=data(result))
         raise ClientError('Unknown bank action.')

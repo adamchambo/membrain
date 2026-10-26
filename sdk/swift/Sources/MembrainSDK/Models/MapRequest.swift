@@ -12,6 +12,7 @@ public struct MapRequest: Sendable, Codable {
     public enum Layout: String, Sendable, Codable, CaseIterable {
         case _none = "none"
         case circle = "circle"
+        case embedding = "embedding"
     }
     public static let conceptIdsRule = ArrayRule(minItems: nil, maxItems: 100, uniqueItems: false)
     public static let minimumSimilarityRule = NumericRule<Double>(minimum: -1.0, exclusiveMinimum: false, maximum: 1.0, exclusiveMaximum: false, multipleOf: nil)

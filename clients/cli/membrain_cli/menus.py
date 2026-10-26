@@ -20,6 +20,7 @@ MENUS = {
         ("Processing status", "status"),
         ("Settings / setup", "@setup"),
         ("Help", "@help"),
+        ("Open a 3D map of saved explanations", "@bank.map"),
         ("Back to the conversation", "@chat"),
     )),
     "capture": Menu("Capture", (
@@ -34,6 +35,7 @@ MENUS = {
         ("Learning timeline", "@bank.timeline"),
         ("Browse resources", "@bank.resources"),
         ("Archived concepts", "@bank.archived"),
+        ("Open a 3D map of this scope", "@bank.map"),
         ("Choose search mode", "search_mode"),
         ("Create a subject", "@subject.create"),
     )),

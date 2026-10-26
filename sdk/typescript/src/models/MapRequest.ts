@@ -48,6 +48,7 @@ export interface MapRequest {
 export const MapRequestLayoutEnum = {
     None: 'none',
     Circle: 'circle',
+    Embedding: 'embedding',
 } as const;
 export type MapRequestLayoutEnum = typeof MapRequestLayoutEnum[keyof typeof MapRequestLayoutEnum];
 

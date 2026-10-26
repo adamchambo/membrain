@@ -9,17 +9,20 @@ import Foundation
 
 public struct MapNode: Sendable, Codable {
 
+    public var excerpt: String?
     public var id: UUID
     public var label: String
     public var position: MapPosition?
 
-    public init(id: UUID, label: String, position: MapPosition? = nil) {
+    public init(excerpt: String? = nil, id: UUID, label: String, position: MapPosition? = nil) {
+        self.excerpt = excerpt
         self.id = id
         self.label = label
         self.position = position
     }
 
     public enum CodingKeys: String, CodingKey, CaseIterable {
+        case excerpt
         case id
         case label
         case position
@@ -29,6 +32,7 @@ public struct MapNode: Sendable, Codable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(excerpt, forKey: .excerpt)
         try container.encode(id, forKey: .id)
         try container.encode(label, forKey: .label)
         try container.encodeIfPresent(position, forKey: .position)
