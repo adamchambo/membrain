@@ -32,32 +32,38 @@ def embedding_positions(vectors: list[list[float]]) -> list[dict]:
 
 
 def _jacobi(matrix: list[list[float]]) -> tuple[list[float], list[list[float]]]:
-    """Symmetric eigen-decomposition; columns of the second result are eigenvectors."""
+    """Symmetric eigen-decomposition; columns of the second result are eigenvectors.
+
+    Each sweep rotates every off-diagonal pair once. Rotating one pair fills others
+    back in, so a fixed number of rotations never finishes a pass once n is large.
+    """
     n = len(matrix)
     values = [row[:] for row in matrix]
     vectors = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
-    for _ in range(64):
-        off, p, q = 0.0, 0, 1
-        for i in range(n):
-            for j in range(i + 1, n):
-                if abs(values[i][j]) > off:
-                    off, p, q = abs(values[i][j]), i, j
-        if off < 1e-12:
+    for _ in range(32):
+        rotated = False
+        for p in range(n):
+            for q in range(p + 1, n):
+                apq = values[p][q]
+                if abs(apq) <= 1e-12:
+                    continue
+                rotated = True
+                app, aqq = values[p][p], values[q][q]
+                tau = (aqq - app) / (2 * apq)
+                t = math.copysign(1 / (abs(tau) + math.sqrt(1 + tau * tau)), tau)
+                c = 1 / math.sqrt(1 + t * t)
+                s = t * c
+                for i in range(n):
+                    if i != p and i != q:
+                        aip, aiq = values[i][p], values[i][q]
+                        values[i][p] = values[p][i] = c * aip - s * aiq
+                        values[i][q] = values[q][i] = s * aip + c * aiq
+                    vip, viq = vectors[i][p], vectors[i][q]
+                    vectors[i][p] = c * vip - s * viq
+                    vectors[i][q] = s * vip + c * viq
+                values[p][p] = c * c * app - 2 * s * c * apq + s * s * aqq
+                values[q][q] = s * s * app + 2 * s * c * apq + c * c * aqq
+                values[p][q] = values[q][p] = 0.0
+        if not rotated:
             break
-        app, aqq, apq = values[p][p], values[q][q], values[p][q]
-        tau = (aqq - app) / (2 * apq)
-        t = math.copysign(1 / (abs(tau) + math.sqrt(1 + tau * tau)), tau)
-        c = 1 / math.sqrt(1 + t * t)
-        s = t * c
-        for i in range(n):
-            if i != p and i != q:
-                aip, aiq = values[i][p], values[i][q]
-                values[i][p] = values[p][i] = c * aip - s * aiq
-                values[i][q] = values[q][i] = s * aip + c * aiq
-            vip, viq = vectors[i][p], vectors[i][q]
-            vectors[i][p] = c * vip - s * viq
-            vectors[i][q] = s * vip + c * viq
-        values[p][p] = c * c * app - 2 * s * c * apq + s * s * aqq
-        values[q][q] = s * s * app + 2 * s * c * apq + c * c * aqq
-        values[p][q] = values[q][p] = 0.0
     return [values[i][i] for i in range(n)], vectors
